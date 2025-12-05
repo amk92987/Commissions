@@ -128,11 +128,11 @@ class ManhattanLifeTransformer(BaseTransformer):
         if not self.agent_lookup:
             print("Warning: Could not load Agent Appointment Summary")
 
-    def _lookup_npn(self, agent_name: str) -> str:
+    def _lookup_npn(self, agent_name) -> str:
         """Look up NPN for an agent name."""
         self._load_agent_lookup()
 
-        if not agent_name or not self.agent_lookup:
+        if pd.isna(agent_name) or agent_name is None or str(agent_name).strip() == '' or not self.agent_lookup:
             return ''
 
         # Clean and uppercase the name
@@ -363,7 +363,7 @@ class ManhattanLifeTransformer(BaseTransformer):
         output['ApplytoAgentBalance'] = 'N'
 
         # Note - include original agent name for reference
-        output['Note'] = fee_df[col_map['payor_name']].apply(lambda x: f"Agent: {x}" if x else '')
+        output['Note'] = fee_df[col_map['payor_name']].apply(lambda x: f"Agent: {x}" if pd.notna(x) and str(x).strip() else '')
 
         return output
 
