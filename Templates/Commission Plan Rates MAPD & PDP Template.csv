@@ -1,0 +1,85 @@
+Issuer,Contract,ProductType,PlanName,EffectiveFrom,EffectiveTo, DateRangeBasedOn,Street Initial,StreetTrueup,OverrideInitial,OverrideTrueup,StreetRenewal,OverrideRenewal
+Aetna,High Level,Medicare Advantage,"Aetna MA 2023 CA,NJ Electronic",1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$106.00 ,$64.00 ,$28.00 ,$6.25 
+Aetna,Middle 2,Medicare Advantage,"Aetna MA 2023 CA,NJ Electronic",1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$23.00 ,$12.80 ,$28.00 ,$2.25 
+Aetna,Middle 1,Medicare Advantage,"Aetna MA 2023 CA,NJ Electronic",1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$23.00 ,$12.80 ,$28.00 ,$1.00 
+Aetna,Low Level,Medicare Advantage,"Aetna MA 2023 CA,NJ Electronic",1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$10.60 ,$3.20 ,$28.00 ,$0.00 
+Aetna,High Level,Medicare Advantage,"Aetna MA 2023 CA,NJ Paper",1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$106.00 ,$44.00 ,$28.00 ,$6.25 
+Aetna,Middle 2,Medicare Advantage,"Aetna MA 2023 CA,NJ Paper",1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$21.20 ,$8.80 ,$28.00 ,$2.25 
+Aetna,Middle 1,Medicare Advantage,"Aetna MA 2023 CA,NJ Paper",1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$21.20 ,$8.80 ,$28.00 ,$1.00 
+Aetna,Low Level,Medicare Advantage,"Aetna MA 2023 CA,NJ Paper",1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$0.00 ,$2.20 ,$28.00 ,$0.00 
+Aetna,High Level,Medicare Advantage,Aetna MA 2023 Electronic,1/1/2023,1/1/2024,Effective Date,$270.00 ,$269.00 ,$96.00 ,$54.00 ,$22.50 ,$5.42 
+Aetna,Middle 2,Medicare Advantage,Aetna MA 2023 Electronic,1/1/2023,1/1/2024,Effective Date,$270.00 ,$269.00 ,$19.20 ,$10.80 ,$22.50 ,$1.08 
+Aetna,Middle 1,Medicare Advantage,Aetna MA 2023 Electronic,1/1/2023,1/1/2024,Effective Date,$270.00 ,$269.00 ,$19.20 ,$10.80 ,$22.50 ,$1.08 
+Aetna,Low Level,Medicare Advantage,Aetna MA 2023 Electronic,1/1/2023,1/1/2024,Effective Date,$270.00 ,$269.00 ,$4.50 ,$2.70 ,$22.50 ,$0.00 
+Aetna,High Level,Medicare Advantage,Aetna MA 2023 FL Electronic,1/1/2023,1/1/2024,Effective Date,$270.00 ,$269.00 ,$175.00 ,$0.00 ,$22.50 ,$5.42 
+Aetna,Middle 2,Medicare Advantage,Aetna MA 2023 FL Electronic,1/1/2023,1/1/2024,Effective Date,$270.00 ,$269.00 ,$35.00 ,$0.00 ,$22.50 ,$1.08 
+Aetna,Middle 1,Medicare Advantage,Aetna MA 2023 FL Electronic,1/1/2023,1/1/2024,Effective Date,$270.00 ,$269.00 ,$35.00 ,$0.00 ,$22.50 ,$1.08 
+Aetna,Low Level,Medicare Advantage,Aetna MA 2023 FL Electronic,1/1/2023,1/1/2024,Effective Date,$270.00 ,$269.00 ,$8.00 ,$0.00 ,$22.50 ,$0.00 
+Aetna,High Level,Medicare Prescription,Aetna PDP 2023 CHOICE,1/1/2023,1/1/2024,Effective Date,$41.00 ,$40.00 ,$7.00 ,$8.00 ,$3.42 ,$0.42 
+Aetna,Middle 2,Medicare Prescription,Aetna PDP 2023 CHOICE,1/1/2023,1/1/2024,Effective Date,$41.00 ,$40.00 ,$1.40 ,$1.60 ,$3.42 ,$0.08 
+Aetna,Middle 1,Medicare Prescription,Aetna PDP 2023 CHOICE,1/1/2023,1/1/2024,Effective Date,$41.00 ,$40.00 ,$1.40 ,$1.60 ,$3.42 ,$0.08 
+Aetna,Low Level,Medicare Prescription,Aetna PDP 2023 CHOICE,1/1/2023,1/1/2024,Effective Date,$41.00 ,$40.00 ,$0.35 ,$0.80 ,$3.42 ,$0.00 
+Aetna,High Level,Medicare Prescription,Aetna PDP 2023 PLUS,1/1/2023,1/1/2024,Effective Date,$41.00 ,$40.00 ,$7.00 ,$8.00 ,$3.42 ,$0.58 
+Aetna,Middle 2,Medicare Prescription,Aetna PDP 2023 PLUS,1/1/2023,1/1/2024,Effective Date,$41.00 ,$40.00 ,$1.40 ,$1.60 ,$3.42 ,$0.12 
+Aetna,Middle 1,Medicare Prescription,Aetna PDP 2023 PLUS,1/1/2023,1/1/2024,Effective Date,$41.00 ,$40.00 ,$1.40 ,$1.60 ,$3.42 ,$0.12 
+Aetna,Low Level,Medicare Prescription,Aetna PDP 2023 PLUS,1/1/2023,1/1/2024,Effective Date,$41.00 ,$40.00 ,$0.35 ,$0.80 ,$3.42 ,$0.00 
+Aetna,High Level,Medicare Prescription,Aetna PDP 2023 SMART RX,1/1/2023,1/1/2024,Effective Date,$41.00 ,$40.00 ,$12.00 ,$0.00 ,$3.42 ,$0.33 
+Aetna,Middle 2,Medicare Prescription,Aetna PDP 2023 SMART RX,1/1/2023,1/1/2024,Effective Date,$41.00 ,$40.00 ,$2.40 ,$0.00 ,$3.42 ,$0.07 
+Aetna,Middle 1,Medicare Prescription,Aetna PDP 2023 SMART RX,1/1/2023,1/1/2024,Effective Date,$41.00 ,$40.00 ,$2.40 ,$0.00 ,$3.42 ,$0.07 
+Aetna,Low Level,Medicare Prescription,Aetna PDP 2023 SMART RX,1/1/2023,1/1/2024,Effective Date,$41.00 ,$40.00 ,$0.60 ,$0.00 ,$3.42 ,$0.00 
+Anthem,High Level,Medicare Advantage,"Anthem MA 2023 CA,NJ",1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$75.00 ,$75.00 ,$28.00 ,$6.25 
+Anthem,Middle 2,Medicare Advantage,"Anthem MA 2023 CA,NJ",1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$15.00 ,$15.00 ,$28.00 ,$1.25 
+Anthem,Middle 1,Medicare Advantage,"Anthem MA 2023 CA,NJ",1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$15.00 ,$15.00 ,$28.00 ,$1.25 
+Anthem,Low Level,Medicare Advantage,"Anthem MA 2023 CA,NJ",1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$3.50 ,$3.25 ,$28.00 ,$0.00 
+Anthem,High Level,Medicare Advantage,Anthem MA 2023 Mediblue,1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$75.00 ,$75.00 ,$28.00 ,$6.25 
+Anthem,Middle 2,Medicare Advantage,Anthem MA 2023 Mediblue,1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$15.00 ,$15.00 ,$28.00 ,$1.25 
+Anthem,Middle 1,Medicare Advantage,Anthem MA 2023 Mediblue,1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$15.00 ,$15.00 ,$28.00 ,$1.25 
+Anthem,Low Level,Medicare Advantage,Anthem MA 2023 Mediblue,1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$3.50 ,$3.25 ,$28.00 ,$0.00 
+BCBS,High Level,Medicare Advantage,BCBS MA 2023,1/1/2023,1/1/2024,Effective Date,$270.00 ,$269.00 ,$75.00 ,$75.00 ,$22.50 ,$6.25 
+BCBS,Middle 2,Medicare Advantage,BCBS MA 2023,1/1/2023,1/1/2024,Effective Date,$270.00 ,$269.00 ,$15.00 ,$15.00 ,$22.50 ,$1.25 
+BCBS,Middle 1,Medicare Advantage,BCBS MA 2023,1/1/2023,1/1/2024,Effective Date,$270.00 ,$269.00 ,$15.00 ,$15.00 ,$22.50 ,$1.25 
+BCBS,Low Level,Medicare Advantage,BCBS MA 2023,1/1/2023,1/1/2024,Effective Date,$270.00 ,$269.00 ,$3.50 ,$3.25 ,$22.50 ,$0.00 
+Humana,High Level,Medicare Advantage,Humana MA 2023,1/1/2023,1/1/2024,Effective Date,$270.00 ,$269.00 ,$120.00 ,$55.00 ,$22.50 ,$10.00 
+Humana,Middle 2,Medicare Advantage,Humana MA 2023,1/1/2023,1/1/2024,Effective Date,$270.00 ,$269.00 ,$24.00 ,$11.00 ,$22.50 ,$2.00 
+Humana,Middle 1,Medicare Advantage,Humana MA 2023,1/1/2023,1/1/2024,Effective Date,$270.00 ,$269.00 ,$24.00 ,$11.00 ,$22.50 ,$2.00 
+Humana,Low Level,Medicare Advantage,Humana MA 2023,1/1/2023,1/1/2024,Effective Date,$270.00 ,$269.00 ,$1.20 ,$2.25 ,$22.50 ,$0.00 
+Humana,High Level,Medicare Advantage,"Humana MA 2023 CA, NJ",1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$120.00 ,$55.00 ,$28.00 ,$10.00 
+Humana,Middle 2,Medicare Advantage,"Humana MA 2023 CA, NJ",1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$24.00 ,$11.00 ,$28.00 ,$2.00 
+Humana,Middle 1,Medicare Advantage,"Humana MA 2023 CA, NJ",1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$24.00 ,$11.00 ,$28.00 ,$2.00 
+Humana,Low Level,Medicare Advantage,"Humana MA 2023 CA, NJ",1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$1.20 ,$2.25 ,$28.00 ,$0.00 
+Humana,High Level,Medicare Prescription,Humana PDP 2023,1/1/2023,1/1/2024,Effective Date,$41.00 ,$40.00 ,$15.00 ,$10.00 ,$3.42 ,$1.25 
+Humana,Middle 2,Medicare Prescription,Humana PDP 2023,1/1/2023,1/1/2024,Effective Date,$41.00 ,$40.00 ,$3.00 ,$2.00 ,$3.42 ,$0.25 
+Humana,Middle 1,Medicare Prescription,Humana PDP 2023,1/1/2023,1/1/2024,Effective Date,$41.00 ,$40.00 ,$3.00 ,$2.00 ,$3.42 ,$0.25 
+Humana,Low Level,Medicare Prescription,Humana PDP 2023,1/1/2023,1/1/2024,Effective Date,$41.00 ,$40.00 ,$50.00 ,$0.50 ,$3.42 ,$0.00 
+SCAN,High Level,Medicare Advantage,SCAN MA 2023,1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$63.00 ,$62.00 ,$28.00 ,$5.25 
+SCAN,Middle 2,Medicare Advantage,SCAN MA 2023,1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$12.00 ,$12.40 ,$28.00 ,$1.05 
+SCAN,Middle 1,Medicare Advantage,SCAN MA 2023,1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$12.00 ,$12.40 ,$28.00 ,$1.05 
+SCAN,Low Level,Medicare Advantage,SCAN MA 2023,1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$3.15 ,$3.10 ,$28.00 ,$0.00 
+UHC,High Level,Medicare Advantage,UHC MA 2023,1/1/2023,1/1/2024,Effective Date,$270.00 ,$269.00 ,$75.00 ,$75.00 ,$22.50 ,$6.25 
+UHC,Middle 2,Medicare Advantage,UHC MA 2023,1/1/2023,1/1/2024,Effective Date,$270.00 ,$269.00 ,$15.00 ,$15.00 ,$22.50 ,$1.25 
+UHC,Middle 1,Medicare Advantage,UHC MA 2023,1/1/2023,1/1/2024,Effective Date,$270.00 ,$269.00 ,$15.00 ,$15.00 ,$22.50 ,$1.25 
+UHC,Low Level,Medicare Advantage,UHC MA 2023,1/1/2023,1/1/2024,Effective Date,$270.00 ,$269.00 ,$2.50 ,$3.25 ,$22.50 ,$0.00 
+UHC,High Level,Medicare Advantage,UHC MA 2023 CA,1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$105.00 ,$70.00 ,$28.00 ,$8.75 
+UHC,Middle 2,Medicare Advantage,UHC MA 2023 CA,1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$21.00 ,$14.00 ,$28.00 ,$1.75 
+UHC,Middle 1,Medicare Advantage,UHC MA 2023 CA,1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$21.00 ,$14.00 ,$28.00 ,$1.75 
+UHC,Low Level,Medicare Advantage,UHC MA 2023 CA,1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$5.50 ,$3.50 ,$28.00 ,$0.00 
+UHC,High Level,Medicare Advantage,"UHC MA 2023 CT,PA,DC",1/1/2023,1/1/2024,Effective Date,$304.00 ,$303.00 ,$75.00 ,$75.00 ,$25.33 ,$6.25 
+UHC,Middle 2,Medicare Advantage,"UHC MA 2023 CT,PA,DC",1/1/2023,1/1/2024,Effective Date,$304.00 ,$303.00 ,$15.00 ,$15.00 ,$25.33 ,$1.25 
+UHC,Middle 1,Medicare Advantage,"UHC MA 2023 CT,PA,DC",1/1/2023,1/1/2024,Effective Date,$304.00 ,$303.00 ,$15.00 ,$15.00 ,$25.33 ,$1.25 
+UHC,Low Level,Medicare Advantage,"UHC MA 2023 CT,PA,DC",1/1/2023,1/1/2024,Effective Date,$304.00 ,$303.00 ,$2.50 ,$3.25 ,$25.33 ,$0.00 
+UHC,High Level,Medicare Prescription,UHC PDP 2023,1/1/2023,1/1/2024,Effective Date,$41.00 ,$40.00 ,$5.00 ,$7.00 ,$3.42 ,$0.42 
+UHC,Middle 2,Medicare Prescription,UHC PDP 2023,1/1/2023,1/1/2024,Effective Date,$41.00 ,$40.00 ,$1.00 ,$1.40 ,$3.42 ,$0.08 
+UHC,Middle 1,Medicare Prescription,UHC PDP 2023,1/1/2023,1/1/2024,Effective Date,$41.00 ,$40.00 ,$1.00 ,$1.40 ,$3.42 ,$0.08 
+UHC,Low Level,Medicare Prescription,UHC PDP 2023,1/1/2023,1/1/2024,Effective Date,$41.00 ,$40.00 ,$0.00 ,$0.25 ,$3.42 ,$0.00 
+Wellcare,High Level,Medicare Advantage,Wellcare MA 2023,1/1/2023,1/1/2024,Effective Date,$270.00 ,$269.00 ,$100.00 ,$100.00 ,$22.50 ,$8.33 
+Wellcare,Middle 2,Medicare Advantage,Wellcare MA 2023,1/1/2023,1/1/2024,Effective Date,$270.00 ,$269.00 ,$20.00 ,$20.00 ,$22.50 ,$1.67 
+Wellcare,Middle 1,Medicare Advantage,Wellcare MA 2023,1/1/2023,1/1/2024,Effective Date,$270.00 ,$269.00 ,$20.00 ,$20.00 ,$22.50 ,$1.67 
+Wellcare,Low Level,Medicare Advantage,Wellcare MA 2023,1/1/2023,1/1/2024,Effective Date,$270.00 ,$269.00 ,$5.00 ,$1.00 ,$22.50 ,$0.00 
+Wellcare,High Level,Medicare Advantage,"Wellcare MA 2023 CA, NJ",1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$115.00 ,$115.00 ,$28.00 ,$9.58 
+Wellcare,Middle 2,Medicare Advantage,"Wellcare MA 2023 CA, NJ",1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$23.00 ,$23.00 ,$28.00 ,$1.92 
+Wellcare,Middle 1,Medicare Advantage,"Wellcare MA 2023 CA, NJ",1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$23.00 ,$23.00 ,$28.00 ,$1.92 
+Wellcare,Low Level,Medicare Advantage,"Wellcare MA 2023 CA, NJ",1/1/2023,1/1/2024,Effective Date,$336.00 ,$336.00 ,$1.15 ,$1.15 ,$28.00 ,$0.00 
+Wellcare,High Level,Medicare Prescription,Wellcare PDP 2023,1/1/2023,1/1/2024,Effective Date,$41.00 ,$40.00 ,$7.00 ,$8.00 ,$3.42 ,$0.58 
+Wellcare,Middle 2,Medicare Prescription,Wellcare PDP 2023,1/1/2023,1/1/2024,Effective Date,$41.00 ,$40.00 ,$7.00 ,$1.60 ,$3.42 ,$0.12 
+Wellcare,Middle 1,Medicare Prescription,Wellcare PDP 2023,1/1/2023,1/1/2024,Effective Date,$41.00 ,$40.00 ,$7.00 ,$1.60 ,$3.42 ,$0.12 
+Wellcare,Low Level,Medicare Prescription,Wellcare PDP 2023,1/1/2023,1/1/2024,Effective Date,$41.00 ,$40.00 ,$7.00 ,$0.40 ,$3.42 ,$0.00 

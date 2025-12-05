@@ -1,0 +1,6 @@
+PolicyNo,PHFirst,PHLast,Status,Issuer,State,ProductType,PlanName,SubmittedDate,EffectiveDate,TermDate,PaySched,PayCode,AgentID,WritingAgentID,Premium,CommPrem
+CB10023,Nolan,Cryer,Active,UHC,,,IntellaPlan Plus,6/1/2022,6/1/2022,,Monthly,As Earned,,3101,1000,1000
+CB10024,Sam,Walls,Pending,UHC,,,IntellaPlan Plus,6/1/2022,6/1/2022,,Monthly,Default,,3101,1000,1000
+CB10025,Rob,Shield,Lapsed,UHC,TX,,IntellaPlan Plus,6/1/2022,6/1/2022,,Monthly,Converted,,3101,1000,1000
+CB10026,Becky,Notts,Cancelled,UHC,TX,,IntellaPlan Plus,6/1/2022,6/1/2022,,Monthly,As Earned,,3101,1000,1000
+CB10027,Derek,Jones,Terminated,UHC,TX,,IntellaPlan Plus,6/1/2022,6/1/2022,12/31/2022,Monthly,As Earned,,3101,1000,1000

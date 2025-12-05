@@ -1,0 +1,2 @@
+AgentID,WritingAgentID,Issuer,EffectiveDate,ExpirationDate,UplineWritingAgentID,ForfeitCommission,ProductType,Contract,DetailEffDate,DetailExpDate,AdvanceMonths,DefAdvanceMonth,AsEarned,NoAdminFee,ManagerId
+DD1200,123456,ABC,1/1/2023,,bob,Y,All,Low level,1/1/2023,,6,,,,

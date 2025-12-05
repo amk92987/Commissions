@@ -1,0 +1,6 @@
+PolicyNo,PHFirst,PHLast,Status,Issuer,State,ProductType,PlanName,SubmittedDate,EffectiveDate,TermDate,PaySched,PayCode,WritingAgentID,Premium,CommPrem,TranDate,CommReceived,PTD,NoPayMon,MemberCount,Note
+AT1002,SFO102,YYZ202,Active,Aetna,,Accident,Intella PrepareCare,5/1/2022,5/1/2022,,Monthly,Default,1033,300,300,6/6/2022,180,6/1/2022,1,100,Test
+AT1003,SFO103,YYZ203,Pending,Aetna,CA,Ancillary,Intella PrepareCare,5/1/2022,5/1/2022,,Quarterly,Converted,1034,256,256,6/6/2022,,6/1/2022,3,,Test
+AT1004,SFO104,YYZ204,Lapsed,Aetna,VA,Short Term,Intella PrepareCare,5/1/2022,5/1/2022,,Semi-Annually,As Earned,1035,457,457,6/6/2022,,6/1/2022,6,,Test
+AT1005,SFO105,YYZ205,Cancelled,Aetna,MA,Cancer,Intella PrepareCare,5/1/2022,5/1/2022,,Monthly,Default,1036,544,544,6/6/2022,,6/1/2022,1,,Test
+AT1006,SFO106,YYZ206,Terminated,Aetna,MT,Cancer,Intella PrepareCare,5/1/2022,5/1/2022,5/2/2022,Annually,As Earned,1037,211,211,6/6/2022,,6/1/2022,12,,Test

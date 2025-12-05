@@ -1,0 +1,5 @@
+AgentID,State,LicenseID,LicenseType,Status,PerpIndicator,LineofAuthority,EffectiveDate,ExpDate,Note
+9212359,VA,XX12R456,Resident,Active,Yes,Health & Life,1/1/2020,,
+9212359,MA,XX12R457,Non-Resident,Active,No,Health only,1/1/2020,3/1/2021,
+9212359,CA,XX12R458,Resident,Active,No,Life Only,1/1/2020,3/1/2021,
+9212359,MS,XX12R459,Non-Resident,inactive,No,Property & Casualty,1/1/2020,3/1/2021,

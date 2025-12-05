@@ -1,0 +1,21 @@
+Issuer,Contract,ProductType,PlanName,States,EffectiveFrom,EffectiveTo, DateRangeBasedOn,Street Initial,StreetTrueup,OverrideInitial,OverrideTrueup,StreetRenewal,OverrideRenewal
+Aetna,High Level,Medicare Advantage,Aetna MA 2023 Electronic,FL GA LA PA SC,1/1/2023,1/1/2026,Effective Date,$336.00 ,$336.00 ,$106.00 ,$64.00 ,$28.00 ,$6.25 
+Aetna,High Level,Medicare Advantage,Aetna MA 2023 Electronic,IL NC NV OK TX WA,1/1/2023,1/1/2026,Effective Date,$336.00 ,$336.00 ,$106.00 ,$44.00 ,$28.00 ,$6.25 
+Aetna,High Level,Medicare Advantage,Aetna MA 2023 Electronic,MI,1/1/2023,1/1/2026,Effective Date,$270.00 ,$269.00 ,$96.00 ,$54.00 ,$22.50 ,$5.42 
+Aetna,High Level,Medicare Advantage,Aetna MA 2023 Electronic,AL AZ DE IA IN KS KY MO MS NE NH NJ OH TN,1/1/2023,1/1/2026,Effective Date,$270.00 ,$269.00 ,$175.00 ,$0.00 ,$22.50 ,$5.42 
+Aetna,High Level,Medicare Advantage,Aetna MA 2023 Electronic,AR,1/1/2023,1/1/2026,Effective Date,$41.00 ,$40.00 ,$7.00 ,$8.00 ,$3.42 ,$0.42 
+Aetna,Low Level,Medicare Advantage,Aetna MA 2023 Electronic,FL GA LA PA SC,1/1/2023,1/1/2026,Effective Date,$336.00 ,$336.00 ,$10.60 ,$3.20 ,$28.00 ,$0.00 
+Aetna,Low Level,Medicare Advantage,Aetna MA 2023 Electronic,IL NC NV OK TX WA,1/1/2023,1/1/2026,Effective Date,$336.00 ,$336.00 ,$0.00 ,$2.20 ,$28.00 ,$0.00 
+Aetna,Low Level,Medicare Advantage,Aetna MA 2023 Electronic,MI,1/1/2023,1/1/2026,Effective Date,$270.00 ,$269.00 ,$4.50 ,$2.70 ,$22.50 ,$0.00 
+Aetna,Low Level,Medicare Advantage,Aetna MA 2023 Electronic,AL AZ DE IA IN KS KY MO MS NE NH NJ OH TN,1/1/2023,1/1/2026,Effective Date,$270.00 ,$269.00 ,$8.00 ,$0.00 ,$22.50 ,$0.00 
+Aetna,Low Level,Medicare Advantage,Aetna MA 2023 Electronic,AR,1/1/2023,1/1/2026,Effective Date,$41.00 ,$40.00 ,$0.35 ,$0.80 ,$3.42 ,$0.00 
+Aetna,Middle 1,Medicare Advantage,Aetna MA 2023 Electronic,FL GA LA PA SC,1/1/2023,1/1/2026,Effective Date,$336.00 ,$336.00 ,$23.00 ,$12.80 ,$28.00 ,$1.00 
+Aetna,Middle 1,Medicare Advantage,Aetna MA 2023 Electronic,IL NC NV OK TX WA,1/1/2023,1/1/2026,Effective Date,$336.00 ,$336.00 ,$21.20 ,$8.80 ,$28.00 ,$1.00 
+Aetna,Middle 1,Medicare Advantage,Aetna MA 2023 Electronic,MI,1/1/2023,1/1/2026,Effective Date,$270.00 ,$269.00 ,$19.20 ,$10.80 ,$22.50 ,$1.08 
+Aetna,Middle 1,Medicare Advantage,Aetna MA 2023 Electronic,AL AZ DE IA IN KS KY MO MS NE NH NJ OH TN,1/1/2023,1/1/2026,Effective Date,$270.00 ,$269.00 ,$35.00 ,$0.00 ,$22.50 ,$1.08 
+Aetna,Middle 1,Medicare Advantage,Aetna MA 2023 Electronic,AR,1/1/2023,1/1/2026,Effective Date,$41.00 ,$40.00 ,$1.40 ,$1.60 ,$3.42 ,$0.08 
+Aetna,Middle 2,Medicare Advantage,Aetna MA 2023 Electronic,FL GA LA PA SC,1/1/2023,1/1/2026,Effective Date,$336.00 ,$336.00 ,$23.00 ,$12.80 ,$28.00 ,$2.25 
+Aetna,Middle 2,Medicare Advantage,Aetna MA 2023 Electronic,IL NC NV OK TX WA,1/1/2023,1/1/2026,Effective Date,$336.00 ,$336.00 ,$21.20 ,$8.80 ,$28.00 ,$2.25 
+Aetna,Middle 2,Medicare Advantage,Aetna MA 2023 Electronic,MI,1/1/2023,1/1/2026,Effective Date,$270.00 ,$269.00 ,$19.20 ,$10.80 ,$22.50 ,$1.08 
+Aetna,Middle 2,Medicare Advantage,Aetna MA 2023 Electronic,AL AZ DE IA IN KS KY MO MS NE NH NJ OH TN,1/1/2023,1/1/2026,Effective Date,$270.00 ,$269.00 ,$35.00 ,$0.00 ,$22.50 ,$1.08 
+Aetna,Middle 2,Medicare Advantage,Aetna MA 2023 Electronic,AR,1/1/2023,1/1/2026,Effective Date,$41.00 ,$40.00 ,$1.40 ,$1.60 ,$3.42 ,$0.08 

@@ -1,0 +1,5 @@
+AgentID,ProcessDate,Description,Issuer,PolicyNo,UnitPrice,Quantity,Total,ApplytoNet,ApplytoForm1099,ApplytoAgentBalance,Note
+1034,,Miscellaneous,NHIC,,,,400,Y,Y,N,test
+1035,,Miscellaneous,NHIC,,25,8,1000,Y,N,N,test
+1036,,Miscellaneous,NHIC,,,,-500,Y,N,N,test
+1037,3/1/2022,Miscellaneous,NHIC,,,,200,Y,N,N,test

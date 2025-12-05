@@ -1,0 +1,4 @@
+PolicyNo,Issuer,AgentID,WritingAgentID,Advance,Advance Recovery
+WS2000,NHIC,3103,,200,50
+WS2000,NHIC,3104,,400,100
+WS2000,NHIC,3118,,100,25

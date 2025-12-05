@@ -1,0 +1,6 @@
+AgentID,Issuer,ProductType,AdvanceMonths,AsEarned,AlternateContract,AlternateUpline
+1001,Any,,6,,,
+1002,NHIC,Accident,6,,,
+1003,NHIC,Accident,,Y,,1002
+1004,NHIC,Accident,,,ContractName,
+1005,NHIC,Accident,,,ContractName,1004

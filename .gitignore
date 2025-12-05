@@ -1,0 +1,27 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Uploads and exports (don't commit user data)
+uploads/*
+exports/*
+!uploads/.gitkeep
+!exports/.gitkeep
+
+# Data files (carrier signatures will be recreated)
+data/*
+!data/.gitkeep
+
+# Environment variables
+.env

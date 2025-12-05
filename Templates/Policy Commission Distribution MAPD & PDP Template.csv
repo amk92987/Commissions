@@ -1,0 +1,4 @@
+PolicyNo,Issuer,AgentID,WritingAgentID,Level,StreetInitial,StreetTrue-up,OverrideInitial,OverrideTrue-up,StreetRenewal,OverrideRenewal
+1234567890,Aetna,1001,,1,270,269,4.8,0,22.5,0
+1234567890,Aetna,1002,,2,270,269,32,18,22.5,1.81
+1234567890,Aetna,1003,,3,270,269,96,54,22.5,5.42
