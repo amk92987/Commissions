@@ -2,8 +2,11 @@ from flask import Blueprint, render_template, request, jsonify, current_app, sen
 import os
 import uuid
 from werkzeug.utils import secure_filename
+import pandas as pd
 from app.file_parser import parse_file, get_file_preview
 from app.carrier_recognition import CarrierRecognition
+from app.carrier_configs import CarrierConfig
+from app.transformers import get_transformer
 
 main = Blueprint('main', __name__)
 
@@ -17,6 +20,11 @@ def allowed_file(filename):
 @main.route('/')
 def index():
     return render_template('index.html')
+
+
+@main.route('/settings')
+def settings():
+    return render_template('settings.html')
 
 
 @main.route('/api/upload', methods=['POST'])
@@ -47,6 +55,17 @@ def upload_file():
         recognition = CarrierRecognition(current_app.config['DATA_FOLDER'])
         recognized_carrier = recognition.recognize_carrier(columns, filename)
 
+        # Get carrier config to detect file type
+        carrier_config = CarrierConfig(current_app.config['DATA_FOLDER'])
+        carrier_config.initialize_default_configs()
+
+        detected_file_type = None
+        if recognized_carrier:
+            detected_file_type = carrier_config.detect_file_type(recognized_carrier, columns)
+
+        # Get configured carriers
+        configured_carriers = carrier_config.get_all_carriers()
+
         return jsonify({
             'success': True,
             'file_id': unique_id,
@@ -56,7 +75,9 @@ def upload_file():
             'preview': preview_data,
             'row_count': len(parse_file(filepath)),
             'recognized_carrier': recognized_carrier,
-            'known_carriers': recognition.get_all_carriers()
+            'known_carriers': recognition.get_all_carriers(),
+            'configured_carriers': configured_carriers,
+            'detected_file_type': detected_file_type
         })
     except Exception as e:
         # Clean up file on error
@@ -73,6 +94,7 @@ def confirm_carrier():
     saved_filename = data.get('saved_filename')
     columns = data.get('columns', [])
     original_filename = data.get('original_filename', '')
+    file_type = data.get('file_type', 'commission')
 
     if not carrier_name or not saved_filename:
         return jsonify({'error': 'Missing required fields'}), 400
@@ -81,9 +103,15 @@ def confirm_carrier():
     recognition = CarrierRecognition(current_app.config['DATA_FOLDER'])
     recognition.register_carrier(carrier_name, columns, original_filename)
 
+    # Check if carrier has a transformer configured
+    carrier_config = CarrierConfig(current_app.config['DATA_FOLDER'])
+    has_transformer = get_transformer(carrier_name, carrier_config) is not None
+
     return jsonify({
         'success': True,
-        'message': f'Carrier "{carrier_name}" registered successfully'
+        'message': f'Carrier "{carrier_name}" registered successfully',
+        'has_transformer': has_transformer,
+        'file_type': file_type
     })
 
 
@@ -91,8 +119,10 @@ def confirm_carrier():
 def get_carriers():
     """Get list of all known carriers."""
     recognition = CarrierRecognition(current_app.config['DATA_FOLDER'])
+    carrier_config = CarrierConfig(current_app.config['DATA_FOLDER'])
     return jsonify({
-        'carriers': recognition.get_all_carriers()
+        'carriers': recognition.get_all_carriers(),
+        'configured_carriers': carrier_config.get_all_carriers()
     })
 
 
@@ -113,7 +143,8 @@ def process_file():
     data = request.json
     saved_filename = data.get('saved_filename')
     carrier_name = data.get('carrier_name')
-    template_name = data.get('template', 'Policy And Transactions Template (13).csv')
+    file_type = data.get('file_type', 'commission')
+    use_transformer = data.get('use_transformer', True)
     column_mappings = data.get('column_mappings', {})
 
     if not saved_filename or not carrier_name:
@@ -127,36 +158,63 @@ def process_file():
         # Parse the uploaded file
         df = parse_file(filepath)
 
-        # Load template to get target columns
-        template_path = os.path.join(current_app.config['TEMPLATES_FOLDER'], template_name)
-        import pandas as pd
-        template_df = pd.read_csv(template_path, nrows=0)
-        target_columns = list(template_df.columns)
+        # Get carrier config
+        carrier_config = CarrierConfig(current_app.config['DATA_FOLDER'])
+        transformer = get_transformer(carrier_name, carrier_config)
 
-        # Create output dataframe with template columns
-        output_df = pd.DataFrame(columns=target_columns)
+        if transformer and use_transformer:
+            # Use the carrier-specific transformer
+            output_df = transformer.transform(df, file_type)
 
-        # Apply column mappings
-        for target_col, source_col in column_mappings.items():
-            if source_col and source_col in df.columns:
-                output_df[target_col] = df[source_col]
+            # Determine template based on file type
+            config = carrier_config.get_carrier_config(carrier_name)
+            if config and file_type in config.get('file_types', {}):
+                template_name = config['file_types'][file_type]['template']
+            else:
+                template_name = 'Policy And Transactions Template (13).csv'
 
-        # Fill unmapped columns with empty strings
-        for col in target_columns:
-            if col not in output_df.columns or output_df[col].isna().all():
-                output_df[col] = ''
+            # Check for missing lookups
+            missing_lookups = []
+            if file_type == 'commission':
+                # Find any rows where ProductType or PlanName is empty but Note has a value
+                for idx, row in output_df.iterrows():
+                    if (row.get('ProductType', '') == '' or row.get('PlanName', '') == '') and row.get('Note', '') != '':
+                        plan_desc = row.get('Note', '')
+                        if plan_desc and plan_desc not in missing_lookups:
+                            missing_lookups.append(plan_desc)
+        else:
+            # Fallback to manual column mapping
+            template_name = data.get('template', 'Policy And Transactions Template (13).csv')
+            template_path = os.path.join(current_app.config['TEMPLATES_FOLDER'], template_name)
+            template_df = pd.read_csv(template_path, nrows=0)
+            target_columns = list(template_df.columns)
+
+            output_df = pd.DataFrame(columns=target_columns)
+            for target_col, source_col in column_mappings.items():
+                if source_col and source_col in df.columns:
+                    output_df[target_col] = df[source_col]
+
+            for col in target_columns:
+                if col not in output_df.columns or output_df[col].isna().all():
+                    output_df[col] = ''
+
+            missing_lookups = []
 
         # Generate export file
-        export_filename = f"{carrier_name}_{saved_filename.replace('.', '_')}_export.csv"
+        timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
+        export_filename = f"{carrier_name}_{file_type}_{timestamp}.csv"
         export_path = os.path.join(current_app.config['EXPORT_FOLDER'], export_filename)
         output_df.to_csv(export_path, index=False)
 
         return jsonify({
             'success': True,
             'export_filename': export_filename,
-            'row_count': len(output_df)
+            'row_count': len(output_df),
+            'missing_lookups': missing_lookups[:10]  # Limit to first 10
         })
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 
@@ -167,3 +225,47 @@ def download_file(filename):
     if not os.path.exists(export_path):
         return jsonify({'error': 'File not found'}), 404
     return send_file(export_path, as_attachment=True)
+
+
+# ==================== LOOKUP MANAGEMENT ====================
+
+@main.route('/api/lookups/<carrier_name>', methods=['GET'])
+def get_lookups(carrier_name):
+    """Get all lookups for a carrier."""
+    carrier_config = CarrierConfig(current_app.config['DATA_FOLDER'])
+    lookups = carrier_config.get_all_lookups(carrier_name)
+    return jsonify({'lookups': lookups})
+
+
+@main.route('/api/lookups/<carrier_name>/<lookup_name>', methods=['POST'])
+def update_lookup(carrier_name, lookup_name):
+    """Update or add a lookup entry."""
+    data = request.json
+    key = data.get('key')
+    value = data.get('value')
+
+    if not key or not value:
+        return jsonify({'error': 'Key and value are required'}), 400
+
+    carrier_config = CarrierConfig(current_app.config['DATA_FOLDER'])
+    carrier_config.update_lookup(carrier_name, lookup_name, key, value)
+
+    return jsonify({'success': True})
+
+
+@main.route('/api/lookups/<carrier_name>/<lookup_name>/<path:key>', methods=['DELETE'])
+def delete_lookup(carrier_name, lookup_name, key):
+    """Delete a lookup entry."""
+    carrier_config = CarrierConfig(current_app.config['DATA_FOLDER'])
+    carrier_config.delete_lookup_entry(carrier_name, lookup_name, key)
+    return jsonify({'success': True})
+
+
+@main.route('/api/carrier-config/<carrier_name>', methods=['GET'])
+def get_carrier_config(carrier_name):
+    """Get full configuration for a carrier."""
+    carrier_config = CarrierConfig(current_app.config['DATA_FOLDER'])
+    config = carrier_config.get_carrier_config(carrier_name)
+    if not config:
+        return jsonify({'error': 'Carrier not found'}), 404
+    return jsonify({'config': config})

@@ -300,6 +300,164 @@ tr:hover {
     justify-content: flex-end;
 }
 
+/* Navigation */
+nav {
+    margin-top: 1rem;
+}
+
+.nav-link {
+    color: #888;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    margin: 0 0.5rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+    color: #00d9ff;
+}
+
+.nav-link.active {
+    color: #00d9ff;
+    background: rgba(0, 217, 255, 0.1);
+}
+
+/* Settings Page */
+.settings-section {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.settings-section h2 {
+    color: #00d9ff;
+    margin-bottom: 1rem;
+}
+
+.carrier-select-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.carrier-select-group select {
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #444;
+    background: #1a1a2e;
+    color: #fff;
+    font-size: 1rem;
+    min-width: 250px;
+}
+
+.lookup-table-section {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #333;
+}
+
+.lookup-table-section h3 {
+    color: #00d9ff;
+    margin-bottom: 0.5rem;
+}
+
+.lookup-table-section .description {
+    color: #888;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.add-lookup-form {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.add-lookup-form input {
+    flex: 1;
+    min-width: 200px;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #444;
+    background: #0f0f1a;
+    color: #fff;
+    font-size: 0.9rem;
+}
+
+.add-lookup-form input:focus {
+    outline: none;
+    border-color: #00d9ff;
+}
+
+.btn-small {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+.btn-danger {
+    background: #ff4444;
+    color: #fff;
+}
+
+.btn-danger:hover {
+    background: #ff6666;
+}
+
+/* Notice and Warning boxes */
+.notice {
+    background: rgba(0, 217, 255, 0.1);
+    border: 1px solid #00d9ff;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.notice p {
+    color: #00d9ff;
+}
+
+.warning {
+    background: rgba(255, 200, 0, 0.1);
+    border: 1px solid #ffcc00;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+    text-align: left;
+}
+
+.warning p {
+    color: #ffcc00;
+}
+
+.warning ul {
+    margin: 0.5rem 0 0.5rem 1.5rem;
+    color: #e0e0e0;
+}
+
+.warning a {
+    color: #00d9ff;
+}
+
+/* Carrier input group for modal */
+.carrier-input-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #aaa;
+}
+
+.carrier-input-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #444;
+    background: #0f0f1a;
+    color: #fff;
+    font-size: 1rem;
+}
+
 /* Utility */
 .hidden {
     display: none !important;

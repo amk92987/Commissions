@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Commission Processor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Commission Processor</h1>
+            <p>Manage carrier configurations and lookups</p>
+            <nav>
+                <a href="/" class="nav-link">Upload</a>
+                <a href="/settings" class="nav-link active">Settings</a>
+            </nav>
+        </header>
+
+        <main>
+            <!-- Carrier Selection -->
+            <section class="settings-section">
+                <h2>Carrier Configuration</h2>
+                <div class="carrier-select-group">
+                    <label>Select Carrier:</label>
+                    <select id="carrierSelect">
+                        <option value="">-- Select Carrier --</option>
+                    </select>
+                </div>
+            </section>
+
+            <!-- Lookups Section -->
+            <section id="lookupsSection" class="settings-section hidden">
+                <h2>Lookup Tables for <span id="selectedCarrierName"></span></h2>
+
+                <!-- Plan to Product Type -->
+                <div class="lookup-table-section">
+                    <h3>Plan Description to Product Type</h3>
+                    <p class="description">Maps plan codes/descriptions to product types (e.g., "Dental with Vision", "Accident")</p>
+
+                    <div class="add-lookup-form">
+                        <input type="text" id="newPlanCode" placeholder="Plan Description (e.g., DVH SELECT $5,000...)">
+                        <input type="text" id="newProductType" placeholder="Product Type (e.g., Dental with Vision)">
+                        <button id="addProductTypeBtn" class="btn btn-primary btn-small">Add</button>
+                    </div>
+
+                    <div class="table-container">
+                        <table id="productTypeTable">
+                            <thead>
+                                <tr>
+                                    <th>Plan Description</th>
+                                    <th>Product Type</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Plan to Plan Name -->
+                <div class="lookup-table-section">
+                    <h3>Plan Description to Plan Name</h3>
+                    <p class="description">Maps plan codes/descriptions to friendly plan names</p>
+
+                    <div class="add-lookup-form">
+                        <input type="text" id="newPlanCodeForName" placeholder="Plan Description">
+                        <input type="text" id="newPlanName" placeholder="Plan Name (e.g., Affordable Choice)">
+                        <button id="addPlanNameBtn" class="btn btn-primary btn-small">Add</button>
+                    </div>
+
+                    <div class="table-container">
+                        <table id="planNameTable">
+                            <thead>
+                                <tr>
+                                    <th>Plan Description</th>
+                                    <th>Plan Name</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        let currentCarrier = '';
+
+        // Load carriers on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            const response = await fetch('/api/carriers');
+            const data = await response.json();
+
+            const select = document.getElementById('carrierSelect');
+            const carriers = [...new Set([
+                ...(data.carriers || []),
+                ...(data.configured_carriers || [])
+            ])];
+
+            carriers.forEach(carrier => {
+                const option = document.createElement('option');
+                option.value = carrier;
+                option.textContent = carrier;
+                select.appendChild(option);
+            });
+        });
+
+        // Carrier selection change
+        document.getElementById('carrierSelect').addEventListener('change', async (e) => {
+            currentCarrier = e.target.value;
+            if (!currentCarrier) {
+                document.getElementById('lookupsSection').classList.add('hidden');
+                return;
+            }
+
+            document.getElementById('selectedCarrierName').textContent = currentCarrier;
+            document.getElementById('lookupsSection').classList.remove('hidden');
+            await loadLookups();
+        });
+
+        // Load lookups for current carrier
+        async function loadLookups() {
+            const response = await fetch(`/api/lookups/${encodeURIComponent(currentCarrier)}`);
+            const data = await response.json();
+            const lookups = data.lookups || {};
+
+            // Populate Product Type table
+            const productTypeBody = document.querySelector('#productTypeTable tbody');
+            productTypeBody.innerHTML = '';
+            const productTypes = lookups.plan_to_product_type || {};
+            Object.entries(productTypes).forEach(([key, value]) => {
+                productTypeBody.innerHTML += `
+                    <tr>
+                        <td>${escapeHtml(key)}</td>
+                        <td>${escapeHtml(value)}</td>
+                        <td>
+                            <button class="btn btn-danger btn-small" onclick="deleteLookup('plan_to_product_type', '${escapeHtml(key)}')">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            // Populate Plan Name table
+            const planNameBody = document.querySelector('#planNameTable tbody');
+            planNameBody.innerHTML = '';
+            const planNames = lookups.plan_to_plan_name || {};
+            Object.entries(planNames).forEach(([key, value]) => {
+                planNameBody.innerHTML += `
+                    <tr>
+                        <td>${escapeHtml(key)}</td>
+                        <td>${escapeHtml(value)}</td>
+                        <td>
+                            <button class="btn btn-danger btn-small" onclick="deleteLookup('plan_to_plan_name', '${escapeHtml(key)}')">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Add Product Type lookup
+        document.getElementById('addProductTypeBtn').addEventListener('click', async () => {
+            const key = document.getElementById('newPlanCode').value.trim();
+            const value = document.getElementById('newProductType').value.trim();
+
+            if (!key || !value) {
+                alert('Please enter both Plan Description and Product Type');
+                return;
+            }
+
+            await addLookup('plan_to_product_type', key, value);
+            document.getElementById('newPlanCode').value = '';
+            document.getElementById('newProductType').value = '';
+
+            // Also add to plan_to_plan_name if not exists
+            const planNameInput = document.getElementById('newPlanName').value.trim();
+            if (!planNameInput) {
+                // Prompt for plan name
+                const planName = prompt('Also add a Plan Name for this plan description?');
+                if (planName) {
+                    await addLookup('plan_to_plan_name', key, planName);
+                }
+            }
+
+            await loadLookups();
+        });
+
+        // Add Plan Name lookup
+        document.getElementById('addPlanNameBtn').addEventListener('click', async () => {
+            const key = document.getElementById('newPlanCodeForName').value.trim();
+            const value = document.getElementById('newPlanName').value.trim();
+
+            if (!key || !value) {
+                alert('Please enter both Plan Description and Plan Name');
+                return;
+            }
+
+            await addLookup('plan_to_plan_name', key, value);
+            document.getElementById('newPlanCodeForName').value = '';
+            document.getElementById('newPlanName').value = '';
+            await loadLookups();
+        });
+
+        async function addLookup(lookupName, key, value) {
+            await fetch(`/api/lookups/${encodeURIComponent(currentCarrier)}/${lookupName}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key, value })
+            });
+        }
+
+        async function deleteLookup(lookupName, key) {
+            if (!confirm(`Delete lookup for "${key}"?`)) return;
+
+            await fetch(`/api/lookups/${encodeURIComponent(currentCarrier)}/${lookupName}/${encodeURIComponent(key)}`, {
+                method: 'DELETE'
+            });
+            await loadLookups();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

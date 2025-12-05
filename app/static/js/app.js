@@ -3,6 +3,8 @@ let currentFile = null;
 let currentColumns = [];
 let savedFilename = '';
 let carrierName = '';
+let fileType = 'commission';
+let hasTransformer = false;
 
 // DOM Elements
 const dropZone = document.getElementById('dropZone');
@@ -88,8 +90,17 @@ async function uploadFile(file) {
         currentColumns = data.columns;
         savedFilename = data.saved_filename;
 
-        // Populate known carriers in modal
-        populateCarrierList(data.known_carriers);
+        // Populate known carriers in modal (combine all carriers)
+        const allCarriers = [...new Set([
+            ...(data.known_carriers || []),
+            ...(data.configured_carriers || [])
+        ])];
+        populateCarrierList(allCarriers);
+
+        // Set detected file type if available
+        if (data.detected_file_type) {
+            document.getElementById('fileTypeSelect').value = data.detected_file_type;
+        }
 
         if (data.recognized_carrier) {
             // Carrier recognized - auto-fill and ask for confirmation
@@ -129,6 +140,7 @@ function populateCarrierList(carriers) {
 async function confirmCarrier() {
     const input = document.getElementById('carrierNameInput');
     carrierName = input.value.trim();
+    fileType = document.getElementById('fileTypeSelect').value;
 
     if (!carrierName) {
         alert('Please enter a carrier name');
@@ -136,24 +148,34 @@ async function confirmCarrier() {
     }
 
     // Register carrier
-    await fetch('/api/confirm-carrier', {
+    const response = await fetch('/api/confirm-carrier', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             carrier_name: carrierName,
             saved_filename: savedFilename,
             columns: currentColumns,
-            original_filename: currentFile.name
+            original_filename: currentFile.name,
+            file_type: fileType
         })
     });
+
+    const data = await response.json();
+    hasTransformer = data.has_transformer;
 
     carrierModal.classList.add('hidden');
     showPreview(currentFile.previewData);
 }
 
 function showPreview(data) {
+    const fileTypeLabels = {
+        'commission': 'Commission Statement',
+        'chargeback': 'Chargeback Report'
+    };
+
     document.getElementById('previewFilename').textContent = `${data.filename} (${carrierName})`;
     document.getElementById('rowCount').textContent = data.row_count;
+    document.getElementById('fileTypeLabel').textContent = fileTypeLabels[fileType] || fileType;
 
     // Build preview table
     const thead = document.querySelector('#previewTable thead');
@@ -164,8 +186,18 @@ function showPreview(data) {
         '<tr>' + data.columns.map(col => `<td>${row[col] ?? ''}</td>`).join('') + '</tr>'
     ).join('');
 
-    // Build column mapping UI
-    buildMappingUI(data.columns);
+    // Show auto-transform notice or manual mapping based on whether carrier has a transformer
+    const autoNotice = document.getElementById('autoTransformNotice');
+    const mappingSection = document.getElementById('mappingSection');
+
+    if (hasTransformer) {
+        autoNotice.classList.remove('hidden');
+        mappingSection.classList.add('hidden');
+    } else {
+        autoNotice.classList.add('hidden');
+        mappingSection.classList.remove('hidden');
+        buildMappingUI(data.columns);
+    }
 
     previewSection.classList.remove('hidden');
 }
@@ -235,28 +267,34 @@ function findBestMatch(targetCol, sourceColumns) {
 }
 
 async function processFile() {
-    // Gather column mappings
-    const mappings = {};
-    document.querySelectorAll('#mappingGrid select').forEach(select => {
-        const target = select.dataset.target;
-        const source = select.value;
-        if (source) {
-            mappings[target] = source;
-        }
-    });
-
     showLoading(true);
     previewSection.classList.add('hidden');
 
     try {
+        let body = {
+            saved_filename: savedFilename,
+            carrier_name: carrierName,
+            file_type: fileType,
+            use_transformer: hasTransformer
+        };
+
+        // Add manual mappings if no transformer
+        if (!hasTransformer) {
+            const mappings = {};
+            document.querySelectorAll('#mappingGrid select').forEach(select => {
+                const target = select.dataset.target;
+                const source = select.value;
+                if (source) {
+                    mappings[target] = source;
+                }
+            });
+            body.column_mappings = mappings;
+        }
+
         const response = await fetch('/api/process', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                saved_filename: savedFilename,
-                carrier_name: carrierName,
-                column_mappings: mappings
-            })
+            body: JSON.stringify(body)
         });
 
         const data = await response.json();
@@ -272,6 +310,18 @@ async function processFile() {
         document.getElementById('exportFilename').textContent = data.export_filename;
         document.getElementById('exportRowCount').textContent = data.row_count;
         document.getElementById('downloadBtn').dataset.filename = data.export_filename;
+
+        // Show missing lookups warning if any
+        const warningDiv = document.getElementById('missingLookupsWarning');
+        const lookupsList = document.getElementById('missingLookupsList');
+
+        if (data.missing_lookups && data.missing_lookups.length > 0) {
+            lookupsList.innerHTML = data.missing_lookups.map(l => `<li>${l}</li>`).join('');
+            warningDiv.classList.remove('hidden');
+        } else {
+            warningDiv.classList.add('hidden');
+        }
+
         exportSection.classList.remove('hidden');
 
     } catch (error) {
@@ -299,9 +349,12 @@ function resetUI() {
     currentColumns = [];
     savedFilename = '';
     carrierName = '';
+    fileType = 'commission';
+    hasTransformer = false;
     fileInput.value = '';
 
     previewSection.classList.add('hidden');
     exportSection.classList.add('hidden');
     carrierModal.classList.add('hidden');
+    document.getElementById('missingLookupsWarning').classList.add('hidden');
 }
