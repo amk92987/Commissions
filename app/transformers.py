@@ -54,17 +54,20 @@ class ManhattanLifeTransformer(BaseTransformer):
         available = []
         df.columns = df.columns.str.strip()
 
-        # Check for Policy column
-        policy_col = self._find_column(df, ['Policy'])
+        # Check for Policy column (returns index to handle duplicates)
+        policy_col_idx = self._find_column(df, ['Policy'])
 
-        if policy_col:
+        if policy_col_idx is not None:
+            # Get the column as a Series using iloc
+            policy_series = df.iloc[:, policy_col_idx]
+
             # Check for APPT. FEE rows
-            has_fees = df[policy_col].astype(str).str.strip().str.upper().eq('APPT. FEE').any()
+            has_fees = policy_series.astype(str).str.strip().str.upper().eq('APPT. FEE').any()
             if has_fees:
                 available.append('adjustment')
 
             # Check for regular commission rows (not APPT. FEE)
-            has_commission = (~df[policy_col].astype(str).str.strip().str.upper().eq('APPT. FEE')).any()
+            has_commission = (~policy_series.astype(str).str.strip().str.upper().eq('APPT. FEE')).any()
             if has_commission:
                 available.append('commission')
         else:
@@ -73,15 +76,18 @@ class ManhattanLifeTransformer(BaseTransformer):
 
         return available
 
-    def _find_column(self, df: pd.DataFrame, possibilities: List[str]) -> Optional[str]:
-        """Find a column by checking possible names."""
+    def _find_column(self, df: pd.DataFrame, possibilities: List[str]) -> Optional[int]:
+        """Find a column by checking possible names. Returns column index to handle duplicates."""
         df_cols = [c.strip() for c in df.columns]
         for poss in possibilities:
-            if poss in df_cols:
-                return poss
-            for col in df_cols:
+            # Exact match first
+            for idx, col in enumerate(df_cols):
+                if col == poss:
+                    return idx
+            # Partial match
+            for idx, col in enumerate(df_cols):
                 if poss.lower() in col.lower():
-                    return col
+                    return idx
         return None
 
     def _load_agent_lookup(self):
@@ -175,9 +181,10 @@ class ManhattanLifeTransformer(BaseTransformer):
         df.columns = df.columns.str.strip()
 
         # Filter out APPT. FEE rows
-        policy_col = self._find_column(df, ['Policy'])
-        if policy_col:
-            df = df[~df[policy_col].astype(str).str.strip().str.upper().eq('APPT. FEE')].copy()
+        policy_col_idx = self._find_column(df, ['Policy'])
+        if policy_col_idx is not None:
+            policy_series = df.iloc[:, policy_col_idx]
+            df = df[~policy_series.astype(str).str.strip().str.upper().eq('APPT. FEE')].copy()
 
         # Find the right column names (they may vary slightly)
         col_map = self._find_columns(df, {
@@ -314,11 +321,12 @@ class ManhattanLifeTransformer(BaseTransformer):
         df.columns = df.columns.str.strip()
 
         # Filter to only APPT. FEE rows
-        policy_col = self._find_column(df, ['Policy'])
-        if not policy_col:
+        policy_col_idx = self._find_column(df, ['Policy'])
+        if policy_col_idx is None:
             return pd.DataFrame()
 
-        fee_df = df[df[policy_col].astype(str).str.strip().str.upper().eq('APPT. FEE')].copy()
+        policy_series = df.iloc[:, policy_col_idx]
+        fee_df = df[policy_series.astype(str).str.strip().str.upper().eq('APPT. FEE')].copy()
 
         if len(fee_df) == 0:
             return pd.DataFrame()
