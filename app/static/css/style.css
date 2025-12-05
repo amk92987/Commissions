@@ -458,6 +458,19 @@ nav {
     font-size: 1rem;
 }
 
+/* Download buttons */
+.download-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+.download-buttons .btn {
+    margin: 0.25rem;
+}
+
 /* Utility */
 .hidden {
     display: none !important;

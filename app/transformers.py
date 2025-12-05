@@ -3,9 +3,10 @@ Carrier-specific data transformers.
 Each carrier has its own transformation logic to convert source data to template format.
 """
 import pandas as pd
-from typing import Dict, Optional
+from typing import Dict, Optional, List, Tuple
 from datetime import datetime
 from app.carrier_configs import CarrierConfig
+import os
 
 
 class BaseTransformer:
@@ -14,10 +15,25 @@ class BaseTransformer:
     def __init__(self, carrier_config: CarrierConfig, carrier_name: str):
         self.carrier_config = carrier_config
         self.carrier_name = carrier_name
+        self.agent_lookup = None  # Will be loaded when needed
 
     def transform(self, df: pd.DataFrame, file_type: str) -> pd.DataFrame:
         """Transform source data to template format."""
         raise NotImplementedError
+
+    def get_available_outputs(self, df: pd.DataFrame) -> List[str]:
+        """Return list of output types available in this file."""
+        return ['commission']
+
+    def transform_all(self, df: pd.DataFrame) -> Dict[str, pd.DataFrame]:
+        """Transform to all available output types. Returns dict of {type: dataframe}."""
+        results = {}
+        for output_type in self.get_available_outputs(df):
+            try:
+                results[output_type] = self.transform(df, output_type)
+            except Exception as e:
+                print(f"Error transforming {output_type}: {e}")
+        return results
 
 
 class ManhattanLifeTransformer(BaseTransformer):
@@ -28,13 +44,140 @@ class ManhattanLifeTransformer(BaseTransformer):
             return self._transform_commission(df)
         elif file_type == 'chargeback':
             return self._transform_chargeback(df)
+        elif file_type == 'adjustment':
+            return self._transform_adjustment(df)
         else:
             raise ValueError(f"Unknown file type: {file_type}")
+
+    def get_available_outputs(self, df: pd.DataFrame) -> List[str]:
+        """Check what output types are available based on data content."""
+        available = []
+        df.columns = df.columns.str.strip()
+
+        # Check for Policy column
+        policy_col = self._find_column(df, ['Policy'])
+
+        if policy_col:
+            # Check for APPT. FEE rows
+            has_fees = df[policy_col].astype(str).str.strip().str.upper().eq('APPT. FEE').any()
+            if has_fees:
+                available.append('adjustment')
+
+            # Check for regular commission rows (not APPT. FEE)
+            has_commission = (~df[policy_col].astype(str).str.strip().str.upper().eq('APPT. FEE')).any()
+            if has_commission:
+                available.append('commission')
+        else:
+            # No policy column, assume commission
+            available.append('commission')
+
+        return available
+
+    def _find_column(self, df: pd.DataFrame, possibilities: List[str]) -> Optional[str]:
+        """Find a column by checking possible names."""
+        df_cols = [c.strip() for c in df.columns]
+        for poss in possibilities:
+            if poss in df_cols:
+                return poss
+            for col in df_cols:
+                if poss.lower() in col.lower():
+                    return col
+        return None
+
+    def _load_agent_lookup(self):
+        """Load agent name to NPN lookup from Agent Appointment Summary."""
+        if self.agent_lookup is not None:
+            return
+
+        self.agent_lookup = {}
+        # Try to find the Agent Appointment Summary file
+        possible_paths = [
+            os.path.join(self.carrier_config.data_folder, 'Agent Appointment Summary.csv'),
+            os.path.join(self.carrier_config.data_folder, '..', 'Samples', 'writing IDs and NPNs', 'Agent Appointment Summary.csv'),
+        ]
+
+        for path in possible_paths:
+            if os.path.exists(path):
+                try:
+                    agent_df = pd.read_csv(path)
+                    # Filter to Manhattan Life only
+                    ml_agents = agent_df[agent_df['Issuer'].str.strip() == 'Manhattan Life']
+
+                    for _, row in ml_agents.iterrows():
+                        # Create name variations for lookup
+                        first = str(row.get('First Name', '')).strip().upper()
+                        last = str(row.get('Last Name', '')).strip().upper()
+                        npn = str(row.get('NPN', '')).strip()
+                        writing_id = str(row.get('Writing Agent ID', '')).strip()
+
+                        if first and last and npn:
+                            # Store with various key formats
+                            # "FIRST LAST"
+                            self.agent_lookup[f"{first} {last}"] = npn
+                            # "LAST, FIRST" (as it appears in the commission file)
+                            self.agent_lookup[f"{last}, {first}"] = npn
+                            # Also store Writing Agent ID -> NPN
+                            if writing_id:
+                                self.agent_lookup[writing_id] = npn
+
+                    print(f"Loaded {len(self.agent_lookup)} agent mappings for Manhattan Life")
+                    break
+                except Exception as e:
+                    print(f"Error loading agent lookup: {e}")
+
+        if not self.agent_lookup:
+            print("Warning: Could not load Agent Appointment Summary")
+
+    def _lookup_npn(self, agent_name: str) -> str:
+        """Look up NPN for an agent name."""
+        self._load_agent_lookup()
+
+        if not agent_name or not self.agent_lookup:
+            return ''
+
+        # Clean and uppercase the name
+        clean_name = str(agent_name).strip().upper()
+
+        # Direct lookup
+        if clean_name in self.agent_lookup:
+            return self.agent_lookup[clean_name]
+
+        # Try various formats
+        # If name is "LAST, FIRST MIDDLE" format, try "LAST, FIRST"
+        if ',' in clean_name:
+            parts = clean_name.split(',')
+            if len(parts) >= 2:
+                last = parts[0].strip()
+                first_parts = parts[1].strip().split()
+                if first_parts:
+                    first = first_parts[0]
+                    key = f"{last}, {first}"
+                    if key in self.agent_lookup:
+                        return self.agent_lookup[key]
+
+        # Try "FIRST LAST" format
+        parts = clean_name.replace(',', ' ').split()
+        if len(parts) >= 2:
+            # Try first last
+            key = f"{parts[0]} {parts[-1]}"
+            if key in self.agent_lookup:
+                return self.agent_lookup[key]
+            # Try last, first
+            key = f"{parts[-1]}, {parts[0]}"
+            if key in self.agent_lookup:
+                return self.agent_lookup[key]
+
+        return ''
 
     def _transform_commission(self, df: pd.DataFrame) -> pd.DataFrame:
         """Transform commission file to Policy And Transactions template."""
         # Normalize column names (remove extra spaces, handle variations)
         df.columns = df.columns.str.strip()
+
+        # Filter out APPT. FEE rows
+        policy_col = self._find_column(df, ['Policy'])
+        if policy_col:
+            df = df[~df[policy_col].astype(str).str.strip().str.upper().eq('APPT. FEE')].copy()
 
         # Find the right column names (they may vary slightly)
         col_map = self._find_columns(df, {
@@ -159,6 +302,68 @@ class ManhattanLifeTransformer(BaseTransformer):
 
         # Note - empty
         output['Note'] = ''
+
+        return output
+
+    def _transform_adjustment(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Transform APPT. FEE rows to Commission Adjustments template."""
+        df.columns = df.columns.str.strip()
+
+        # Filter to only APPT. FEE rows
+        policy_col = self._find_column(df, ['Policy'])
+        if not policy_col:
+            return pd.DataFrame()
+
+        fee_df = df[df[policy_col].astype(str).str.strip().str.upper().eq('APPT. FEE')].copy()
+
+        if len(fee_df) == 0:
+            return pd.DataFrame()
+
+        # Find the columns we need
+        col_map = self._find_columns(fee_df, {
+            'payor_name': ['Payor/Group Name', 'Payor', 'Group Name'],
+            'charges': ['Charges/Transfers', 'Charges', 'Transfers'],
+            'payment_date': ['Payment Date', 'Payment'],
+        })
+
+        output = pd.DataFrame()
+
+        # AgentID - Need to look up NPN from agent name in Payor/Group Name
+        output['AgentID'] = fee_df[col_map['payor_name']].apply(self._lookup_npn)
+
+        # ProcessDate - from Payment Date
+        output['ProcessDate'] = self._format_date(fee_df[col_map['payment_date']])
+
+        # Description - hardcoded "License Fee or Renewal"
+        output['Description'] = 'License Fee or Renewal'
+
+        # Issuer - hardcoded
+        output['Issuer'] = 'Manhattan Life'
+
+        # PolicyNo - empty for fee adjustments
+        output['PolicyNo'] = ''
+
+        # UnitPrice - empty
+        output['UnitPrice'] = ''
+
+        # Quantity - empty
+        output['Quantity'] = ''
+
+        # Total - invert the sign (negative fee -> positive adjustment)
+        charges = pd.to_numeric(fee_df[col_map['charges']], errors='coerce').fillna(0)
+        output['Total'] = -charges  # Invert: -40 becomes 40
+
+        # ApplytoNet - Y
+        output['ApplytoNet'] = 'Y'
+
+        # ApplytoForm1099 - Y
+        output['ApplytoForm1099'] = 'Y'
+
+        # ApplytoAgentBalance - N
+        output['ApplytoAgentBalance'] = 'N'
+
+        # Note - include original agent name for reference
+        output['Note'] = fee_df[col_map['payor_name']].apply(lambda x: f"Agent: {x}" if x else '')
 
         return output
 

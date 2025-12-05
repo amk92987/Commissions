@@ -38,6 +38,11 @@ class CarrierConfig:
                         "template": "Commission Chargebacks Template (10).csv",
                         "identifier_columns": ["Policy Owner Name", "Policy Number", "# of Days Lapsed"],
                         "description": "Chargeback/lapse report"
+                    },
+                    "adjustment": {
+                        "template": "Commission Adjustments Template (3).csv",
+                        "identifier_columns": ["APPT. FEE"],
+                        "description": "Appointment fee adjustments"
                     }
                 },
                 "lookups": {

@@ -218,6 +218,123 @@ def process_file():
         return jsonify({'error': str(e)}), 500
 
 
+@main.route('/api/available-outputs', methods=['POST'])
+def get_available_outputs():
+    """Check what output types are available for a file."""
+    data = request.json
+    saved_filename = data.get('saved_filename')
+    carrier_name = data.get('carrier_name')
+
+    if not saved_filename or not carrier_name:
+        return jsonify({'error': 'Missing required fields'}), 400
+
+    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], saved_filename)
+    if not os.path.exists(filepath):
+        return jsonify({'error': 'File not found'}), 404
+
+    try:
+        df = parse_file(filepath)
+        carrier_config = CarrierConfig(current_app.config['DATA_FOLDER'])
+        transformer = get_transformer(carrier_name, carrier_config)
+
+        if transformer:
+            available = transformer.get_available_outputs(df)
+        else:
+            available = ['commission']
+
+        # Map output types to display names
+        output_info = {
+            'commission': {'name': 'Commission', 'template': 'Policy And Transactions'},
+            'chargeback': {'name': 'Chargeback', 'template': 'Commission Chargebacks'},
+            'adjustment': {'name': 'Adjustment (Fees)', 'template': 'Commission Adjustments'}
+        }
+
+        outputs = []
+        for out_type in available:
+            info = output_info.get(out_type, {'name': out_type.title(), 'template': 'Unknown'})
+            outputs.append({
+                'type': out_type,
+                'name': info['name'],
+                'template': info['template']
+            })
+
+        return jsonify({
+            'success': True,
+            'available_outputs': outputs
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@main.route('/api/process-all', methods=['POST'])
+def process_all_outputs():
+    """Process file and generate all available output types."""
+    data = request.json
+    saved_filename = data.get('saved_filename')
+    carrier_name = data.get('carrier_name')
+    output_types = data.get('output_types', [])  # List of types to generate
+
+    if not saved_filename or not carrier_name:
+        return jsonify({'error': 'Missing required fields'}), 400
+
+    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], saved_filename)
+    if not os.path.exists(filepath):
+        return jsonify({'error': 'File not found'}), 404
+
+    try:
+        df = parse_file(filepath)
+        carrier_config = CarrierConfig(current_app.config['DATA_FOLDER'])
+        transformer = get_transformer(carrier_name, carrier_config)
+
+        if not transformer:
+            return jsonify({'error': 'No transformer configured for this carrier'}), 400
+
+        timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
+        results = []
+        all_missing_lookups = []
+
+        for file_type in output_types:
+            try:
+                output_df = transformer.transform(df, file_type)
+
+                if len(output_df) == 0:
+                    continue
+
+                # Generate export file
+                export_filename = f"{carrier_name}_{file_type}_{timestamp}.csv"
+                export_path = os.path.join(current_app.config['EXPORT_FOLDER'], export_filename)
+                output_df.to_csv(export_path, index=False)
+
+                # Check for missing lookups (commission only)
+                if file_type == 'commission':
+                    for idx, row in output_df.iterrows():
+                        if (row.get('ProductType', '') == '' or row.get('PlanName', '') == '') and row.get('Note', '') != '':
+                            plan_desc = row.get('Note', '')
+                            if plan_desc and plan_desc not in all_missing_lookups:
+                                all_missing_lookups.append(plan_desc)
+
+                results.append({
+                    'type': file_type,
+                    'filename': export_filename,
+                    'row_count': len(output_df)
+                })
+            except Exception as e:
+                print(f"Error processing {file_type}: {e}")
+                continue
+
+        return jsonify({
+            'success': True,
+            'results': results,
+            'missing_lookups': all_missing_lookups[:10]
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
 @main.route('/api/download/<filename>')
 def download_file(filename):
     """Download exported file."""

@@ -5,6 +5,8 @@ let savedFilename = '';
 let carrierName = '';
 let fileType = 'commission';
 let hasTransformer = false;
+let availableOutputs = [];
+let exportResults = [];
 
 // DOM Elements
 const dropZone = document.getElementById('dropZone');
@@ -31,7 +33,6 @@ fileInput.addEventListener('change', handleFileSelect);
 
 document.getElementById('processBtn').addEventListener('click', processFile);
 document.getElementById('cancelBtn').addEventListener('click', resetUI);
-document.getElementById('downloadBtn').addEventListener('click', downloadExport);
 document.getElementById('newUploadBtn').addEventListener('click', resetUI);
 document.getElementById('confirmCarrierBtn').addEventListener('click', confirmCarrier);
 document.getElementById('cancelCarrierBtn').addEventListener('click', () => {
@@ -164,18 +165,39 @@ async function confirmCarrier() {
     hasTransformer = data.has_transformer;
 
     carrierModal.classList.add('hidden');
+
+    // Check for available output types
+    if (hasTransformer) {
+        await checkAvailableOutputs();
+    }
+
     showPreview(currentFile.previewData);
 }
 
-function showPreview(data) {
-    const fileTypeLabels = {
-        'commission': 'Commission Statement',
-        'chargeback': 'Chargeback Report'
-    };
+async function checkAvailableOutputs() {
+    try {
+        const response = await fetch('/api/available-outputs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                saved_filename: savedFilename,
+                carrier_name: carrierName
+            })
+        });
 
+        const data = await response.json();
+        if (data.success) {
+            availableOutputs = data.available_outputs;
+        }
+    } catch (error) {
+        console.error('Error checking available outputs:', error);
+        availableOutputs = [{ type: 'commission', name: 'Commission', template: 'Policy And Transactions' }];
+    }
+}
+
+function showPreview(data) {
     document.getElementById('previewFilename').textContent = `${data.filename} (${carrierName})`;
     document.getElementById('rowCount').textContent = data.row_count;
-    document.getElementById('fileTypeLabel').textContent = fileTypeLabels[fileType] || fileType;
 
     // Build preview table
     const thead = document.querySelector('#previewTable thead');
@@ -193,13 +215,34 @@ function showPreview(data) {
     if (hasTransformer) {
         autoNotice.classList.remove('hidden');
         mappingSection.classList.add('hidden');
+
+        // Show available output types
+        updateOutputTypesDisplay();
     } else {
         autoNotice.classList.add('hidden');
         mappingSection.classList.remove('hidden');
         buildMappingUI(data.columns);
+        document.getElementById('fileTypeLabel').textContent = 'Commission Statement';
     }
 
     previewSection.classList.remove('hidden');
+}
+
+function updateOutputTypesDisplay() {
+    const fileTypeLabel = document.getElementById('fileTypeLabel');
+
+    if (availableOutputs.length === 0) {
+        fileTypeLabel.textContent = 'Commission Statement';
+        return;
+    }
+
+    if (availableOutputs.length === 1) {
+        fileTypeLabel.textContent = availableOutputs[0].name;
+    } else {
+        // Multiple output types available
+        const names = availableOutputs.map(o => o.name).join(', ');
+        fileTypeLabel.textContent = `Multiple outputs available: ${names}`;
+    }
 }
 
 function buildMappingUI(sourceColumns) {
@@ -271,58 +314,69 @@ async function processFile() {
     previewSection.classList.add('hidden');
 
     try {
-        let body = {
-            saved_filename: savedFilename,
-            carrier_name: carrierName,
-            file_type: fileType,
-            use_transformer: hasTransformer
-        };
+        let data;
 
-        // Add manual mappings if no transformer
-        if (!hasTransformer) {
-            const mappings = {};
-            document.querySelectorAll('#mappingGrid select').forEach(select => {
-                const target = select.dataset.target;
-                const source = select.value;
-                if (source) {
-                    mappings[target] = source;
-                }
+        if (hasTransformer && availableOutputs.length > 0) {
+            // Process all available output types
+            const outputTypes = availableOutputs.map(o => o.type);
+
+            const response = await fetch('/api/process-all', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    saved_filename: savedFilename,
+                    carrier_name: carrierName,
+                    output_types: outputTypes
+                })
             });
-            body.column_mappings = mappings;
-        }
 
-        const response = await fetch('/api/process', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        });
+            data = await response.json();
 
-        const data = await response.json();
-        showLoading(false);
+            if (data.error) {
+                throw new Error(data.error);
+            }
 
-        if (data.error) {
-            alert('Error: ' + data.error);
-            previewSection.classList.remove('hidden');
-            return;
-        }
-
-        // Show export success
-        document.getElementById('exportFilename').textContent = data.export_filename;
-        document.getElementById('exportRowCount').textContent = data.row_count;
-        document.getElementById('downloadBtn').dataset.filename = data.export_filename;
-
-        // Show missing lookups warning if any
-        const warningDiv = document.getElementById('missingLookupsWarning');
-        const lookupsList = document.getElementById('missingLookupsList');
-
-        if (data.missing_lookups && data.missing_lookups.length > 0) {
-            lookupsList.innerHTML = data.missing_lookups.map(l => `<li>${l}</li>`).join('');
-            warningDiv.classList.remove('hidden');
+            exportResults = data.results;
+            showMultiExportSuccess(data);
         } else {
-            warningDiv.classList.add('hidden');
+            // Single file processing (manual mapping or single output)
+            let body = {
+                saved_filename: savedFilename,
+                carrier_name: carrierName,
+                file_type: fileType,
+                use_transformer: hasTransformer
+            };
+
+            // Add manual mappings if no transformer
+            if (!hasTransformer) {
+                const mappings = {};
+                document.querySelectorAll('#mappingGrid select').forEach(select => {
+                    const target = select.dataset.target;
+                    const source = select.value;
+                    if (source) {
+                        mappings[target] = source;
+                    }
+                });
+                body.column_mappings = mappings;
+            }
+
+            const response = await fetch('/api/process', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            data = await response.json();
+
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            exportResults = [{ type: fileType, filename: data.export_filename, row_count: data.row_count }];
+            showSingleExportSuccess(data);
         }
 
-        exportSection.classList.remove('hidden');
+        showLoading(false);
 
     } catch (error) {
         showLoading(false);
@@ -331,9 +385,90 @@ async function processFile() {
     }
 }
 
-function downloadExport() {
-    const filename = document.getElementById('downloadBtn').dataset.filename;
+function showSingleExportSuccess(data) {
+    document.getElementById('exportFilename').textContent = data.export_filename;
+    document.getElementById('exportRowCount').textContent = data.row_count;
+
+    // Build download buttons
+    const downloadContainer = document.getElementById('downloadButtons');
+    downloadContainer.innerHTML = `
+        <button class="btn btn-primary" onclick="downloadFile('${data.export_filename}')">
+            Download ${fileType.charAt(0).toUpperCase() + fileType.slice(1)} File
+        </button>
+    `;
+
+    // Show missing lookups warning if any
+    showMissingLookupsWarning(data.missing_lookups);
+
+    exportSection.classList.remove('hidden');
+}
+
+function showMultiExportSuccess(data) {
+    const results = data.results;
+
+    if (results.length === 0) {
+        alert('No data to export');
+        previewSection.classList.remove('hidden');
+        return;
+    }
+
+    // Update summary
+    const totalRows = results.reduce((sum, r) => sum + r.row_count, 0);
+    document.getElementById('exportFilename').textContent = `${results.length} file(s) generated`;
+    document.getElementById('exportRowCount').textContent = totalRows;
+
+    // Build download buttons for each output type
+    const downloadContainer = document.getElementById('downloadButtons');
+    const outputNames = {
+        'commission': 'Commission',
+        'chargeback': 'Chargeback',
+        'adjustment': 'Adjustment (Fees)'
+    };
+
+    downloadContainer.innerHTML = results.map(result => `
+        <button class="btn btn-primary" onclick="downloadFile('${result.filename}')" style="margin: 0.5rem;">
+            Download ${outputNames[result.type] || result.type} (${result.row_count} rows)
+        </button>
+    `).join('');
+
+    // Add download all button if multiple files
+    if (results.length > 1) {
+        downloadContainer.innerHTML += `
+            <button class="btn btn-secondary" onclick="downloadAllFiles()" style="margin: 0.5rem;">
+                Download All
+            </button>
+        `;
+    }
+
+    // Show missing lookups warning if any
+    showMissingLookupsWarning(data.missing_lookups);
+
+    exportSection.classList.remove('hidden');
+}
+
+function showMissingLookupsWarning(missingLookups) {
+    const warningDiv = document.getElementById('missingLookupsWarning');
+    const lookupsList = document.getElementById('missingLookupsList');
+
+    if (missingLookups && missingLookups.length > 0) {
+        lookupsList.innerHTML = missingLookups.map(l => `<li>${l}</li>`).join('');
+        warningDiv.classList.remove('hidden');
+    } else {
+        warningDiv.classList.add('hidden');
+    }
+}
+
+function downloadFile(filename) {
     window.location.href = `/api/download/${filename}`;
+}
+
+function downloadAllFiles() {
+    // Download each file with a small delay
+    exportResults.forEach((result, index) => {
+        setTimeout(() => {
+            downloadFile(result.filename);
+        }, index * 500);
+    });
 }
 
 function showLoading(show) {
@@ -351,6 +486,8 @@ function resetUI() {
     carrierName = '';
     fileType = 'commission';
     hasTransformer = false;
+    availableOutputs = [];
+    exportResults = [];
     fileInput.value = '';
 
     previewSection.classList.add('hidden');

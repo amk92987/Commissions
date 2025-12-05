@@ -23,15 +23,70 @@ def parse_file(filepath):
 
 
 def parse_csv(filepath):
-    """Parse CSV file."""
-    # Try different encodings
+    """Parse CSV file, handling multi-row headers like Manhattan Life."""
     encodings = ['utf-8', 'latin-1', 'cp1252']
+
     for encoding in encodings:
         try:
-            df = pd.read_csv(filepath, encoding=encoding)
-            return df
+            # First, try to detect if this is a multi-row header file
+            # Read first few rows to check
+            test_df = pd.read_csv(filepath, encoding=encoding, nrows=5, header=None)
+
+            # Check if first row looks like partial headers (has empty-ish values like " ")
+            first_row = test_df.iloc[0].astype(str).tolist()
+            second_row = test_df.iloc[1].astype(str).tolist() if len(test_df) > 1 else []
+
+            # Manhattan Life style: first row has some headers, second row has more
+            # Detect by checking if both rows have string values and first row has " " entries
+            is_multi_header = False
+            if second_row:
+                first_row_blanks = sum(1 for v in first_row if v.strip() in ['', ' '])
+                # If first row has blank-ish columns and second row looks like headers
+                if first_row_blanks >= 3:
+                    # Check if second row values look like column names (not data)
+                    second_row_looks_like_headers = all(
+                        not str(v).replace('.', '').replace('-', '').replace('/', '').isdigit()
+                        for v in second_row[:10] if str(v).strip()
+                    )
+                    if second_row_looks_like_headers:
+                        is_multi_header = True
+
+            if is_multi_header:
+                # Combine first two rows into single header
+                # Use second row as base, fill blanks from first row
+                combined_header = []
+                for i, (h1, h2) in enumerate(zip(first_row, second_row)):
+                    h1 = str(h1).strip()
+                    h2 = str(h2).strip()
+                    if h2 and h2 != ' ':
+                        combined_header.append(h2)
+                    elif h1 and h1 != ' ':
+                        combined_header.append(h1)
+                    else:
+                        combined_header.append(f'Column_{i}')
+
+                # Read full file, skip first 2 rows, use our combined header
+                df = pd.read_csv(filepath, encoding=encoding, skiprows=2, header=None)
+                # Ensure we have enough column names
+                while len(combined_header) < len(df.columns):
+                    combined_header.append(f'Column_{len(combined_header)}')
+                df.columns = combined_header[:len(df.columns)]
+                return df
+            else:
+                # Normal single-row header
+                df = pd.read_csv(filepath, encoding=encoding)
+                return df
+
         except UnicodeDecodeError:
             continue
+        except Exception as e:
+            # If multi-header detection fails, try normal read
+            try:
+                df = pd.read_csv(filepath, encoding=encoding)
+                return df
+            except:
+                continue
+
     raise ValueError("Could not decode CSV file with any supported encoding")
 
 
@@ -95,4 +150,11 @@ def get_file_columns(filepath):
 def get_file_preview(filepath, rows=5):
     """Get a preview of the file data."""
     df = parse_file(filepath)
-    return df.head(rows).to_dict('records'), list(df.columns)
+    # Convert to JSON-safe format (handle NaN, dates, etc.)
+    preview_df = df.head(rows).copy()
+    # Replace NaN with None for JSON serialization
+    preview_df = preview_df.where(pd.notnull(preview_df), None)
+    # Convert any remaining problematic values to strings
+    for col in preview_df.columns:
+        preview_df[col] = preview_df[col].apply(lambda x: str(x) if pd.notnull(x) and x is not None else '')
+    return preview_df.to_dict('records'), list(df.columns)

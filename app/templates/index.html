@@ -69,8 +69,8 @@
                 <div class="success-message">
                     <div class="success-icon">✓</div>
                     <h2>Export Complete!</h2>
-                    <p>File: <span id="exportFilename"></span></p>
-                    <p>Rows exported: <span id="exportRowCount"></span></p>
+                    <p>Generated: <span id="exportFilename"></span></p>
+                    <p>Total rows: <span id="exportRowCount"></span></p>
 
                     <!-- Missing lookups warning -->
                     <div id="missingLookupsWarning" class="warning hidden">
@@ -79,8 +79,10 @@
                         <p>Go to <a href="/settings">Settings</a> to add these lookups.</p>
                     </div>
 
-                    <button id="downloadBtn" class="btn btn-primary">Download CSV</button>
-                    <button id="newUploadBtn" class="btn btn-secondary">Upload Another File</button>
+                    <div id="downloadButtons" class="download-buttons">
+                        <!-- Buttons will be dynamically inserted here -->
+                    </div>
+                    <button id="newUploadBtn" class="btn btn-secondary" style="margin-top: 1rem;">Upload Another File</button>
                 </div>
             </section>
         </main>
