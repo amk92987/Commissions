@@ -152,9 +152,23 @@ def get_file_preview(filepath, rows=5):
     df = parse_file(filepath)
     # Convert to JSON-safe format (handle NaN, dates, etc.)
     preview_df = df.head(rows).copy()
+
+    # Handle duplicate column names by making them unique
+    cols = list(preview_df.columns)
+    seen = {}
+    new_cols = []
+    for col in cols:
+        if col in seen:
+            seen[col] += 1
+            new_cols.append(f"{col}_{seen[col]}")
+        else:
+            seen[col] = 0
+            new_cols.append(col)
+    preview_df.columns = new_cols
+
     # Replace NaN with None for JSON serialization
     preview_df = preview_df.where(pd.notnull(preview_df), None)
     # Convert any remaining problematic values to strings
     for col in preview_df.columns:
-        preview_df[col] = preview_df[col].apply(lambda x: str(x) if pd.notnull(x) and x is not None else '')
-    return preview_df.to_dict('records'), list(df.columns)
+        preview_df[col] = preview_df[col].apply(lambda x: str(x) if x is not None else '')
+    return preview_df.to_dict('records'), new_cols

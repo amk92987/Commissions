@@ -264,7 +264,9 @@ def get_available_outputs():
         })
     except Exception as e:
         import traceback
-        traceback.print_exc()
+        import sys
+        traceback.print_exc(file=sys.stdout)
+        print(f"ERROR in available-outputs: {str(e)}", flush=True)
         return jsonify({'error': str(e)}), 500
 
 
