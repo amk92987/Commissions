@@ -182,28 +182,28 @@ class ManhattanLifeTransformer(BaseTransformer):
         # Find the right column names (they may vary slightly)
         col_map = self._find_columns(df, {
             'group_no': ['Group No.', 'Bill Ctrl/', 'Group No'],
-            'owner_name': ['Owner Name', 'Owner'],
-            'payment_date': ['Payment Date', 'Payment'],
-            'ptd': ['Paid To Date', 'PTD', 'Paid To'],
-            'issue_date': ['Issue Date', 'Issue'],
+            'owner_name': ['Owner Name', 'Owner', 'Name'],
+            'payment_date': ['Payment Date', 'Payment', 'Date'],
+            'ptd': ['Paid To Date', 'PTD', 'Paid To', 'Date'],
+            'issue_date': ['Issue Date', 'Issue', 'Date'],
             'premium': ['Premium'],
             'commission': ['Commission'],
-            'advance_repay': ['Advance Repay', 'Advance'],
-            'issue_state': ['Issue State', 'Issue'],
-            'plan_description': ['Plan Description', 'Plan Desc'],
-            'writing_agent': ['Writing Agent'],
+            'advance_repay': ['Advance Repay', 'Advance', 'Repay'],
+            'issue_state': ['Issue State', 'State'],
+            'plan_description': ['Plan Description', 'Plan Desc', 'Description'],
+            'writing_agent': ['Writing Agent', 'Agent'],
         })
 
         output = pd.DataFrame()
 
         # PolicyNo - from Group No.
-        output['PolicyNo'] = df[col_map['group_no']]
+        output['PolicyNo'] = self._get_column(df, col_map['group_no'])
 
         # PHFirst - empty
         output['PHFirst'] = ''
 
         # PHLast - from Owner Name
-        output['PHLast'] = df[col_map['owner_name']]
+        output['PHLast'] = self._get_column(df, col_map['owner_name'])
 
         # Status - hardcoded
         output['Status'] = 'Active'
@@ -212,27 +212,29 @@ class ManhattanLifeTransformer(BaseTransformer):
         output['Issuer'] = 'Manhattan Life'
 
         # State - from Issue State
-        output['State'] = df[col_map['issue_state']]
+        output['State'] = self._get_column(df, col_map['issue_state'])
 
         # ProductType - lookup from Plan Description
-        output['ProductType'] = df[col_map['plan_description']].apply(
+        plan_desc_col = self._get_column(df, col_map['plan_description'])
+        output['ProductType'] = plan_desc_col.apply(
             lambda x: self.carrier_config.get_lookup(
                 self.carrier_name, 'plan_to_product_type', str(x).strip()
             ) or ''
         )
 
         # PlanName - lookup from Plan Description
-        output['PlanName'] = df[col_map['plan_description']].apply(
+        output['PlanName'] = plan_desc_col.apply(
             lambda x: self.carrier_config.get_lookup(
                 self.carrier_name, 'plan_to_plan_name', str(x).strip()
             ) or ''
         )
 
         # SubmittedDate - from Issue Date
-        output['SubmittedDate'] = self._format_date(df[col_map['issue_date']])
+        issue_date_col = self._get_column(df, col_map['issue_date'])
+        output['SubmittedDate'] = self._format_date(issue_date_col)
 
         # EffectiveDate - from Issue Date
-        output['EffectiveDate'] = self._format_date(df[col_map['issue_date']])
+        output['EffectiveDate'] = self._format_date(issue_date_col)
 
         # TermDate - empty
         output['TermDate'] = ''
@@ -244,24 +246,25 @@ class ManhattanLifeTransformer(BaseTransformer):
         output['PayCode'] = 'Default'
 
         # WritingAgentID - from Writing Agent
-        output['WritingAgentID'] = df[col_map['writing_agent']]
+        output['WritingAgentID'] = self._get_column(df, col_map['writing_agent'])
 
         # Premium
-        output['Premium'] = df[col_map['premium']]
+        premium_col = self._get_column(df, col_map['premium'])
+        output['Premium'] = premium_col
 
         # CommPrem - same as Premium
-        output['CommPrem'] = df[col_map['premium']]
+        output['CommPrem'] = premium_col
 
         # TranDate - from Payment Date
-        output['TranDate'] = self._format_date(df[col_map['payment_date']])
+        output['TranDate'] = self._format_date(self._get_column(df, col_map['payment_date']))
 
         # CommReceived - IF(Commission <> 0, Commission, Advance Repay)
-        commission = pd.to_numeric(df[col_map['commission']], errors='coerce').fillna(0)
-        advance_repay = pd.to_numeric(df[col_map['advance_repay']], errors='coerce').fillna(0)
+        commission = pd.to_numeric(self._get_column(df, col_map['commission']), errors='coerce').fillna(0)
+        advance_repay = pd.to_numeric(self._get_column(df, col_map['advance_repay']), errors='coerce').fillna(0)
         output['CommReceived'] = commission.where(commission != 0, advance_repay)
 
         # PTD - from PTD column
-        output['PTD'] = self._format_date(df[col_map['ptd']])
+        output['PTD'] = self._format_date(self._get_column(df, col_map['ptd']))
 
         # NoPayMon - hardcoded
         output['NoPayMon'] = 1
@@ -270,7 +273,7 @@ class ManhattanLifeTransformer(BaseTransformer):
         output['MemberCount'] = ''
 
         # Note - Plan Description
-        output['Note'] = df[col_map['plan_description']]
+        output['Note'] = plan_desc_col
 
         return output
 
@@ -286,16 +289,17 @@ class ManhattanLifeTransformer(BaseTransformer):
         output = pd.DataFrame()
 
         # PolicyNo
-        output['PolicyNo'] = df[col_map['policy_number']]
+        output['PolicyNo'] = self._get_column(df, col_map['policy_number'])
 
         # Issuer - hardcoded
         output['Issuer'] = 'Manhattan Life'
 
         # CancelDate - from Paid To Date
-        output['CancelDate'] = self._format_date(df[col_map['paid_to_date']])
+        ptd_col = self._get_column(df, col_map['paid_to_date'])
+        output['CancelDate'] = self._format_date(ptd_col)
 
         # ProcessDate - from Paid To Date
-        output['ProcessDate'] = self._format_date(df[col_map['paid_to_date']])
+        output['ProcessDate'] = self._format_date(ptd_col)
 
         # PolicyStatus - hardcoded
         output['PolicyStatus'] = 'Chargeback'
@@ -323,16 +327,18 @@ class ManhattanLifeTransformer(BaseTransformer):
         col_map = self._find_columns(fee_df, {
             'payor_name': ['Payor/Group Name', 'Payor', 'Group Name'],
             'charges': ['Charges/Transfers', 'Charges', 'Transfers'],
-            'payment_date': ['Payment Date', 'Payment'],
+            'payment_date': ['Payment Date', 'Payment', 'Date'],
         })
 
         output = pd.DataFrame()
 
         # AgentID - Need to look up NPN from agent name in Payor/Group Name
-        output['AgentID'] = fee_df[col_map['payor_name']].apply(self._lookup_npn)
+        payor_col = self._get_column(fee_df, col_map['payor_name'])
+        output['AgentID'] = payor_col.apply(self._lookup_npn)
 
         # ProcessDate - from Payment Date
-        output['ProcessDate'] = self._format_date(fee_df[col_map['payment_date']])
+        date_col = self._get_column(fee_df, col_map['payment_date'])
+        output['ProcessDate'] = self._format_date(date_col)
 
         # Description - hardcoded "License Fee or Renewal"
         output['Description'] = 'License Fee or Renewal'
@@ -350,7 +356,8 @@ class ManhattanLifeTransformer(BaseTransformer):
         output['Quantity'] = ''
 
         # Total - invert the sign (negative fee -> positive adjustment)
-        charges = pd.to_numeric(fee_df[col_map['charges']], errors='coerce').fillna(0)
+        charges_col = self._get_column(fee_df, col_map['charges'])
+        charges = pd.to_numeric(charges_col, errors='coerce').fillna(0)
         output['Total'] = -charges  # Invert: -40 becomes 40
 
         # ApplytoNet - Y
@@ -363,37 +370,51 @@ class ManhattanLifeTransformer(BaseTransformer):
         output['ApplytoAgentBalance'] = 'N'
 
         # Note - include original agent name for reference
-        output['Note'] = fee_df[col_map['payor_name']].apply(lambda x: f"Agent: {x}" if pd.notna(x) and str(x).strip() else '')
+        output['Note'] = payor_col.apply(lambda x: f"Agent: {x}" if pd.notna(x) and str(x).strip() else '')
 
         return output
 
     def _find_columns(self, df: pd.DataFrame, column_map: Dict) -> Dict:
-        """Find actual column names from possible variations."""
+        """Find actual column names from possible variations. Returns column indices to handle duplicates."""
         result = {}
         df_cols = [c.strip() for c in df.columns]
 
         for key, possibilities in column_map.items():
-            found = None
+            found_idx = None
             for poss in possibilities:
-                # Exact match
-                if poss in df_cols:
-                    found = poss
+                # Exact match - find first occurrence by index
+                for idx, col in enumerate(df_cols):
+                    if col == poss:
+                        found_idx = idx
+                        break
+                if found_idx is not None:
                     break
                 # Partial match
-                for col in df_cols:
+                for idx, col in enumerate(df_cols):
                     if poss.lower() in col.lower():
-                        found = col
+                        found_idx = idx
                         break
-                if found:
+                if found_idx is not None:
                     break
 
-            if not found:
-                # Use first possibility as default (may cause error if not found)
-                found = possibilities[0]
-
-            result[key] = found
+            if found_idx is not None:
+                result[key] = found_idx
+            else:
+                # Use first possibility as default - try to find any match
+                result[key] = possibilities[0]
 
         return result
+
+    def _get_column(self, df: pd.DataFrame, col_ref) -> pd.Series:
+        """Get a column from dataframe by index or name, always returning a Series."""
+        if isinstance(col_ref, int):
+            return df.iloc[:, col_ref]
+        else:
+            # If it's a name and there are duplicates, get first one
+            col = df[col_ref]
+            if isinstance(col, pd.DataFrame):
+                return col.iloc[:, 0]
+            return col
 
     def _format_date(self, series: pd.Series) -> pd.Series:
         """Format dates to M/D/YYYY format."""
