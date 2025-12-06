@@ -187,18 +187,19 @@ class ManhattanLifeTransformer(BaseTransformer):
             df = df[~policy_series.astype(str).str.strip().str.upper().eq('APPT. FEE')].copy()
 
         # Find the right column names (they may vary slightly)
+        # Note: Order matters - more specific matches first, avoid generic fallbacks like 'Date'
         col_map = self._find_columns(df, {
             'group_no': ['Group No.', 'Bill Ctrl/', 'Group No'],
-            'owner_name': ['Owner Name', 'Owner', 'Name'],
-            'payment_date': ['Payment Date', 'Payment', 'Date'],
-            'ptd': ['Paid To Date', 'PTD', 'Paid To', 'Date'],
-            'issue_date': ['Issue Date', 'Issue', 'Date'],
+            'owner_name': ['Owner Name', 'Owner'],
+            'payment_date': ['Payment Date', 'Payment'],
+            'ptd': ['Paid To Date', 'Paid To'],
+            'issue_date': ['Issue Date'],
             'premium': ['Premium'],
             'commission': ['Commission'],
-            'advance_repay': ['Advance Repay', 'Advance', 'Repay'],
-            'issue_state': ['Issue State', 'State'],
-            'plan_description': ['Plan Description', 'Plan Desc', 'Description'],
-            'writing_agent': ['Writing Agent', 'Agent'],
+            'advance_repay': ['Advance Repay', 'Advance'],
+            'issue_state': ['Issue State'],
+            'plan_description': ['Plan Description', 'Plan Desc'],
+            'writing_agent': ['Writing Agent'],
         })
 
         output = pd.DataFrame()

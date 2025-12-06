@@ -53,12 +53,15 @@ def parse_csv(filepath):
 
             if is_multi_header:
                 # Combine first two rows into single header
-                # Use second row as base, fill blanks from first row
+                # Concatenate row1 + row2 (e.g., "Payment" + "Date" = "Payment Date")
                 combined_header = []
                 for i, (h1, h2) in enumerate(zip(first_row, second_row)):
                     h1 = str(h1).strip()
                     h2 = str(h2).strip()
-                    if h2 and h2 != ' ':
+                    # If both have values, combine them
+                    if h1 and h1 != ' ' and h2 and h2 != ' ':
+                        combined_header.append(f"{h1} {h2}")
+                    elif h2 and h2 != ' ':
                         combined_header.append(h2)
                     elif h1 and h1 != ' ':
                         combined_header.append(h1)
