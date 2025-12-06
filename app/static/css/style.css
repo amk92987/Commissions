@@ -456,6 +456,17 @@ nav {
     background: #0f0f1a;
     color: #fff;
     font-size: 1rem;
+    cursor: pointer;
+}
+
+.carrier-input-group select:focus {
+    outline: none;
+    border-color: #00d9ff;
+}
+
+.carrier-input-group select option {
+    background: #0f0f1a;
+    color: #fff;
 }
 
 /* Download buttons */

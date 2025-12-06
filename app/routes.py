@@ -200,9 +200,14 @@ def process_file():
 
             missing_lookups = []
 
-        # Generate export file
-        timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
-        export_filename = f"{carrier_name}_{file_type}_{timestamp}.csv"
+        # Generate export file with standardized name: YYYYMMDD - Carrier - FileType To Load.csv
+        date_str = pd.Timestamp.now().strftime('%Y%m%d')
+        file_type_display = {
+            'commission': 'Commission',
+            'chargeback': 'Chargeback',
+            'adjustment': 'Adjustment'
+        }.get(file_type, file_type.title())
+        export_filename = f"{date_str} - {carrier_name} - {file_type_display} To Load.csv"
         export_path = os.path.join(current_app.config['EXPORT_FOLDER'], export_filename)
         output_df.to_csv(export_path, index=False)
 
@@ -293,7 +298,12 @@ def process_all_outputs():
         if not transformer:
             return jsonify({'error': 'No transformer configured for this carrier'}), 400
 
-        timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
+        date_str = pd.Timestamp.now().strftime('%Y%m%d')
+        file_type_display_map = {
+            'commission': 'Commission',
+            'chargeback': 'Chargeback',
+            'adjustment': 'Adjustment'
+        }
         results = []
         all_missing_lookups = []
 
@@ -304,8 +314,9 @@ def process_all_outputs():
                 if len(output_df) == 0:
                     continue
 
-                # Generate export file
-                export_filename = f"{carrier_name}_{file_type}_{timestamp}.csv"
+                # Generate export file with standardized name: YYYYMMDD - Carrier - FileType To Load.csv
+                file_type_display = file_type_display_map.get(file_type, file_type.title())
+                export_filename = f"{date_str} - {carrier_name} - {file_type_display} To Load.csv"
                 export_path = os.path.join(current_app.config['EXPORT_FOLDER'], export_filename)
                 output_df.to_csv(export_path, index=False)
 

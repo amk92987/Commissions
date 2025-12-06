@@ -95,29 +95,32 @@ async function uploadFile(file) {
         const allCarriers = [...new Set([
             ...(data.known_carriers || []),
             ...(data.configured_carriers || [])
-        ])];
-        populateCarrierList(allCarriers);
+        ])].sort();
 
         // Set detected file type if available
         if (data.detected_file_type) {
             document.getElementById('fileTypeSelect').value = data.detected_file_type;
         }
 
+        const modalTitle = document.getElementById('carrierModalTitle');
+        const modalMessage = document.getElementById('carrierModalMessage');
+        const carrierSelect = document.getElementById('carrierNameSelect');
+
         if (data.recognized_carrier) {
-            // Carrier recognized - auto-fill and ask for confirmation
-            document.getElementById('carrierNameInput').value = data.recognized_carrier;
-            document.getElementById('carrierModalMessage').textContent =
-                `Recognized carrier: "${data.recognized_carrier}". Confirm or enter a different name:`;
+            // Carrier recognized - pre-select in dropdown
+            modalTitle.textContent = 'Confirm Carrier & File Type';
+            modalMessage.textContent = `Recognized carrier: "${data.recognized_carrier}". Please confirm:`;
+            populateCarrierDropdown(allCarriers, data.recognized_carrier);
         } else {
-            // Unknown carrier - ask for name
-            document.getElementById('carrierNameInput').value = '';
-            document.getElementById('carrierModalMessage').textContent =
-                'New file format detected. Please enter the carrier name:';
+            // Unknown carrier - ask for name with helpful message
+            modalTitle.textContent = "I don't recognize this file";
+            modalMessage.textContent = 'What carrier is this file for?';
+            populateCarrierDropdown(allCarriers, null);
         }
 
         // Show carrier modal
         carrierModal.classList.remove('hidden');
-        document.getElementById('carrierNameInput').focus();
+        carrierSelect.focus();
 
         // Store preview data for later
         currentFile.previewData = data;
@@ -128,24 +131,66 @@ async function uploadFile(file) {
     }
 }
 
-function populateCarrierList(carriers) {
-    const datalist = document.getElementById('carrierList');
-    datalist.innerHTML = '';
+function populateCarrierDropdown(carriers, recognizedCarrier = null) {
+    const select = document.getElementById('carrierNameSelect');
+    const newCarrierGroup = document.getElementById('newCarrierGroup');
+    const newCarrierInput = document.getElementById('newCarrierInput');
+
+    // Reset
+    select.innerHTML = '<option value="">-- Select Carrier --</option>';
+    newCarrierGroup.classList.add('hidden');
+    newCarrierInput.value = '';
+
+    // Add existing carriers
     carriers.forEach(carrier => {
         const option = document.createElement('option');
         option.value = carrier;
-        datalist.appendChild(option);
+        option.textContent = carrier;
+        select.appendChild(option);
     });
+
+    // Add "Add new carrier..." option at the end
+    const newOption = document.createElement('option');
+    newOption.value = '__new__';
+    newOption.textContent = '+ Add new carrier...';
+    select.appendChild(newOption);
+
+    // If carrier was recognized, pre-select it
+    if (recognizedCarrier && carriers.includes(recognizedCarrier)) {
+        select.value = recognizedCarrier;
+    }
+
+    // Handle dropdown change
+    select.onchange = function() {
+        if (this.value === '__new__') {
+            newCarrierGroup.classList.remove('hidden');
+            newCarrierInput.focus();
+        } else {
+            newCarrierGroup.classList.add('hidden');
+            newCarrierInput.value = '';
+        }
+    };
 }
 
 async function confirmCarrier() {
-    const input = document.getElementById('carrierNameInput');
-    carrierName = input.value.trim();
+    const select = document.getElementById('carrierNameSelect');
+    const newCarrierInput = document.getElementById('newCarrierInput');
     fileType = document.getElementById('fileTypeSelect').value;
 
-    if (!carrierName) {
-        alert('Please enter a carrier name');
-        return;
+    // Get carrier name from dropdown or new input
+    if (select.value === '__new__') {
+        carrierName = newCarrierInput.value.trim();
+        if (!carrierName) {
+            alert('Please enter a carrier name');
+            newCarrierInput.focus();
+            return;
+        }
+    } else {
+        carrierName = select.value;
+        if (!carrierName) {
+            alert('Please select a carrier');
+            return;
+        }
     }
 
     // Register carrier

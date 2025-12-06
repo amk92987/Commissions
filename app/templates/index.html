@@ -92,13 +92,20 @@
     <!-- Carrier Name Modal -->
     <div id="carrierModal" class="modal hidden">
         <div class="modal-content">
-            <h2>Identify Carrier & File Type</h2>
-            <p id="carrierModalMessage">Please enter or select the carrier name for this file:</p>
+            <h2 id="carrierModalTitle">Identify Carrier & File Type</h2>
+            <p id="carrierModalMessage">Please select the carrier name for this file:</p>
 
             <div class="carrier-input-group">
                 <label>Carrier Name:</label>
-                <input type="text" id="carrierNameInput" placeholder="Enter carrier name..." list="carrierList">
-                <datalist id="carrierList"></datalist>
+                <select id="carrierNameSelect">
+                    <option value="">-- Select Carrier --</option>
+                </select>
+            </div>
+
+            <!-- New carrier input (hidden by default) -->
+            <div id="newCarrierGroup" class="carrier-input-group hidden">
+                <label>New Carrier Name:</label>
+                <input type="text" id="newCarrierInput" placeholder="Enter new carrier name...">
             </div>
 
             <div class="carrier-input-group">
