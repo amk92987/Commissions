@@ -448,6 +448,66 @@ nav {
     color: #aaa;
 }
 
+/* Larger modal for mappings */
+.modal-large {
+    max-width: 800px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.mappings-container {
+    max-height: 50vh;
+    overflow-y: auto;
+    margin: 1rem 0;
+}
+
+.mapping-section-header {
+    color: #00d9ff;
+    font-size: 1.1rem;
+    margin: 1.5rem 0 0.75rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #333;
+}
+
+.mapping-section-header:first-child {
+    margin-top: 0;
+}
+
+.mapping-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    align-items: center;
+}
+
+.mapping-row .plan-name {
+    color: #e0e0e0;
+    font-size: 0.9rem;
+    word-break: break-word;
+}
+
+.mapping-row input {
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #444;
+    background: #0f0f1a;
+    color: #fff;
+    font-size: 0.9rem;
+}
+
+.mapping-row input:focus {
+    outline: none;
+    border-color: #00d9ff;
+}
+
+.mapping-row input::placeholder {
+    color: #666;
+}
+
 .carrier-input-group select {
     width: 100%;
     padding: 0.75rem;

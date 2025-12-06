@@ -359,12 +359,48 @@ async function processFile() {
     previewSection.classList.add('hidden');
 
     try {
+        const outputTypes = hasTransformer && availableOutputs.length > 0
+            ? availableOutputs.map(o => o.type)
+            : [fileType];
+
+        // First, check for missing mappings
+        const checkResponse = await fetch('/api/check-mappings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                saved_filename: savedFilename,
+                carrier_name: carrierName,
+                output_types: outputTypes
+            })
+        });
+
+        const checkData = await checkResponse.json();
+
+        if (checkData.has_missing) {
+            // Show missing mappings modal
+            showLoading(false);
+            showMissingMappingsModal(checkData.missing_mappings);
+            return;
+        }
+
+        // No missing mappings, proceed with processing
+        await doProcessFile(outputTypes);
+
+    } catch (error) {
+        showLoading(false);
+        alert('Error processing file: ' + error.message);
+        previewSection.classList.remove('hidden');
+    }
+}
+
+async function doProcessFile(outputTypes) {
+    showLoading(true);
+
+    try {
         let data;
 
         if (hasTransformer && availableOutputs.length > 0) {
             // Process all available output types
-            const outputTypes = availableOutputs.map(o => o.type);
-
             const response = await fetch('/api/process-all', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -627,3 +663,127 @@ async function pullFromDrive() {
 
 // Check drive status on page load
 document.addEventListener('DOMContentLoaded', checkDriveStatus);
+
+// ==================== MISSING MAPPINGS HANDLING ====================
+
+const mappingsModal = document.getElementById('mappingsModal');
+let pendingMissingMappings = {};
+
+document.getElementById('saveMappingsBtn').addEventListener('click', saveMappingsAndContinue);
+document.getElementById('cancelMappingsBtn').addEventListener('click', () => {
+    mappingsModal.classList.add('hidden');
+    previewSection.classList.remove('hidden');
+});
+
+function showMissingMappingsModal(missingMappings) {
+    pendingMissingMappings = missingMappings;
+    const container = document.getElementById('mappingsContainer');
+    container.innerHTML = '';
+
+    // Get all unique plan codes across both lookups
+    const allPlanCodes = new Set();
+    for (const lookupName in missingMappings) {
+        missingMappings[lookupName].forEach(code => allPlanCodes.add(code));
+    }
+
+    // Create header row
+    const headerHtml = `
+        <div class="mapping-row" style="background: rgba(0, 217, 255, 0.1); font-weight: 600;">
+            <div class="plan-name">Plan Description</div>
+            <div>Product Type</div>
+            <div>Plan Name</div>
+        </div>
+    `;
+    container.innerHTML = headerHtml;
+
+    // Create a row for each unique plan code
+    allPlanCodes.forEach(planCode => {
+        const row = document.createElement('div');
+        row.className = 'mapping-row';
+
+        const needsProductType = missingMappings['plan_to_product_type']?.includes(planCode);
+        const needsPlanName = missingMappings['plan_to_plan_name']?.includes(planCode);
+
+        row.innerHTML = `
+            <div class="plan-name" title="${planCode}">${planCode}</div>
+            <input type="text"
+                   data-lookup="plan_to_product_type"
+                   data-key="${planCode}"
+                   placeholder="${needsProductType ? 'Enter Product Type' : '(already mapped)'}"
+                   ${needsProductType ? '' : 'disabled style="opacity: 0.5;"'}
+            >
+            <input type="text"
+                   data-lookup="plan_to_plan_name"
+                   data-key="${planCode}"
+                   placeholder="${needsPlanName ? 'Enter Plan Name' : '(already mapped)'}"
+                   ${needsPlanName ? '' : 'disabled style="opacity: 0.5;"'}
+            >
+        `;
+
+        container.appendChild(row);
+    });
+
+    // Show modal
+    mappingsModal.classList.remove('hidden');
+}
+
+async function saveMappingsAndContinue() {
+    // Collect all mappings from the form
+    const mappings = {
+        'plan_to_product_type': {},
+        'plan_to_plan_name': {}
+    };
+
+    let hasEmptyRequired = false;
+
+    document.querySelectorAll('#mappingsContainer input:not([disabled])').forEach(input => {
+        const lookup = input.dataset.lookup;
+        const key = input.dataset.key;
+        const value = input.value.trim();
+
+        if (!value) {
+            hasEmptyRequired = true;
+            input.style.borderColor = '#ff4444';
+        } else {
+            input.style.borderColor = '#444';
+            mappings[lookup][key] = value;
+        }
+    });
+
+    if (hasEmptyRequired) {
+        alert('Please fill in all required mappings before continuing.');
+        return;
+    }
+
+    // Save mappings
+    showLoading(true);
+    mappingsModal.classList.add('hidden');
+
+    try {
+        const response = await fetch(`/api/lookups/${carrierName}/bulk`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mappings })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            throw new Error(data.error);
+        }
+
+        console.log(`Saved ${data.updated_count} mappings`);
+
+        // Now continue with processing
+        const outputTypes = hasTransformer && availableOutputs.length > 0
+            ? availableOutputs.map(o => o.type)
+            : [fileType];
+
+        await doProcessFile(outputTypes);
+
+    } catch (error) {
+        showLoading(false);
+        alert('Error saving mappings: ' + error.message);
+        mappingsModal.classList.remove('hidden');
+    }
+}

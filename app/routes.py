@@ -401,6 +401,81 @@ def get_carrier_config(carrier_name):
     return jsonify({'config': config})
 
 
+@main.route('/api/check-mappings', methods=['POST'])
+def check_mappings():
+    """Check for missing mappings before processing."""
+    data = request.json
+    saved_filename = data.get('saved_filename')
+    carrier_name = data.get('carrier_name')
+    output_types = data.get('output_types', ['commission'])
+
+    if not saved_filename or not carrier_name:
+        return jsonify({'error': 'Missing required fields'}), 400
+
+    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], saved_filename)
+    if not os.path.exists(filepath):
+        return jsonify({'error': 'File not found'}), 404
+
+    try:
+        df = parse_file(filepath)
+        carrier_config = CarrierConfig(current_app.config['DATA_FOLDER'])
+        transformer = get_transformer(carrier_name, carrier_config)
+
+        if not transformer:
+            return jsonify({'has_missing': False, 'missing_mappings': {}})
+
+        all_missing = {}
+        for file_type in output_types:
+            missing = transformer.get_missing_mappings(df, file_type)
+            if missing:
+                for lookup_name, keys in missing.items():
+                    if lookup_name not in all_missing:
+                        all_missing[lookup_name] = []
+                    # Add unique keys only
+                    for key in keys:
+                        if key not in all_missing[lookup_name]:
+                            all_missing[lookup_name].append(key)
+
+        return jsonify({
+            'has_missing': len(all_missing) > 0,
+            'missing_mappings': all_missing,
+            'carrier_name': carrier_name
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@main.route('/api/lookups/<carrier_name>/bulk', methods=['POST'])
+def bulk_update_lookups(carrier_name):
+    """Update multiple lookup entries at once."""
+    data = request.json
+    mappings = data.get('mappings', {})
+
+    if not mappings:
+        return jsonify({'error': 'No mappings provided'}), 400
+
+    carrier_config = CarrierConfig(current_app.config['DATA_FOLDER'])
+    updated_count = 0
+
+    try:
+        for lookup_name, entries in mappings.items():
+            for key, value in entries.items():
+                if value and value.strip():
+                    carrier_config.update_lookup(carrier_name, lookup_name, key, value.strip())
+                    updated_count += 1
+
+        return jsonify({
+            'success': True,
+            'updated_count': updated_count
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
 # ==================== DATABASE OPERATIONS ====================
 
 @main.route('/api/db/save', methods=['POST'])

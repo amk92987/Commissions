@@ -11,7 +11,7 @@
         <header>
             <h1>Commission Processor</h1>
             <p>Upload carrier commission files and export to standard templates</p>
-            <p style="color: #666; font-size: 0.8rem;">Build: ML-v13</p>
+            <p style="color: #666; font-size: 0.8rem;">Build: ML-v14</p>
             <nav>
                 <a href="/" class="nav-link active">Upload</a>
                 <a href="/settings" class="nav-link">Settings</a>
@@ -126,6 +126,23 @@
             <div class="modal-actions">
                 <button id="confirmCarrierBtn" class="btn btn-primary">Confirm</button>
                 <button id="cancelCarrierBtn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Missing Mappings Modal -->
+    <div id="mappingsModal" class="modal hidden">
+        <div class="modal-content modal-large">
+            <h2>Missing Product Mappings</h2>
+            <p id="mappingsModalMessage">The following products don't have mappings configured. Please fill in the values to continue:</p>
+
+            <div id="mappingsContainer" class="mappings-container">
+                <!-- Mapping fields will be inserted here -->
+            </div>
+
+            <div class="modal-actions">
+                <button id="saveMappingsBtn" class="btn btn-primary">Save & Continue Processing</button>
+                <button id="cancelMappingsBtn" class="btn btn-secondary">Cancel</button>
             </div>
         </div>
     </div>

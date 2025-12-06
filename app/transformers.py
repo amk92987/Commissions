@@ -17,6 +17,10 @@ class BaseTransformer:
         self.carrier_name = carrier_name
         self.agent_lookup = None  # Will be loaded when needed
 
+    def get_missing_mappings(self, df: pd.DataFrame, file_type: str) -> Dict[str, List[str]]:
+        """Check for missing mappings. Override in subclasses."""
+        return {}
+
     def transform(self, df: pd.DataFrame, file_type: str) -> pd.DataFrame:
         """Transform source data to template format."""
         raise NotImplementedError
@@ -38,6 +42,53 @@ class BaseTransformer:
 
 class ManhattanLifeTransformer(BaseTransformer):
     """Transformer for Manhattan Life files."""
+
+    def get_missing_mappings(self, df: pd.DataFrame, file_type: str) -> Dict[str, List[str]]:
+        """
+        Check for missing mappings before processing.
+        Returns dict of {lookup_name: [missing_keys]} for each lookup that has missing values.
+        """
+        if file_type != 'commission':
+            return {}
+
+        df = df.copy()
+        df.columns = df.columns.str.strip()
+
+        # Find plan description column
+        col_map = self._find_columns(df, {
+            'plan_description': ['Plan Description', 'Plan Desc'],
+        })
+
+        plan_desc_col = self._get_column(df, col_map['plan_description'])
+
+        # Get unique plan descriptions
+        unique_plans = plan_desc_col.dropna().astype(str).str.strip().unique()
+
+        missing = {
+            'plan_to_product_type': [],
+            'plan_to_plan_name': []
+        }
+
+        for plan in unique_plans:
+            if not plan or plan == '' or plan == 'nan':
+                continue
+
+            # Check product type mapping
+            product_type = self.carrier_config.get_lookup(
+                self.carrier_name, 'plan_to_product_type', plan
+            )
+            if not product_type:
+                missing['plan_to_product_type'].append(plan)
+
+            # Check plan name mapping
+            plan_name = self.carrier_config.get_lookup(
+                self.carrier_name, 'plan_to_plan_name', plan
+            )
+            if not plan_name:
+                missing['plan_to_plan_name'].append(plan)
+
+        # Remove empty lists
+        return {k: v for k, v in missing.items() if v}
 
     def transform(self, df: pd.DataFrame, file_type: str) -> pd.DataFrame:
         if file_type == 'commission':
