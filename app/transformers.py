@@ -53,6 +53,17 @@ class ManhattanLifeTransformer(BaseTransformer):
         """Check what output types are available based on data content."""
         available = []
         df.columns = df.columns.str.strip()
+        col_list = [c.strip() for c in df.columns]
+
+        # Check if this is a chargeback file (has Policy Number + Paid To Date, no exact "Policy" column)
+        has_policy_number = 'Policy Number' in col_list
+        has_paid_to_date = 'Paid To Date' in col_list
+        has_exact_policy = 'Policy' in col_list  # Exact match only
+
+        if has_policy_number and has_paid_to_date and not has_exact_policy:
+            # This looks like a chargeback file
+            available.append('chargeback')
+            return available
 
         # Check for Policy column (returns index to handle duplicates)
         policy_col_idx = self._find_column(df, ['Policy'])
