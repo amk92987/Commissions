@@ -11,7 +11,7 @@
         <header>
             <h1>Commission Processor</h1>
             <p>Upload carrier commission files and export to standard templates</p>
-            <p style="color: #666; font-size: 0.8rem;">Build: ML-v12</p>
+            <p style="color: #666; font-size: 0.8rem;">Build: ML-v13</p>
             <nav>
                 <a href="/" class="nav-link active">Upload</a>
                 <a href="/settings" class="nav-link">Settings</a>
@@ -26,6 +26,12 @@
                     <p>Drag & drop your file here or <span class="browse-link">browse</span></p>
                     <p class="file-types">Supported: CSV, XLS, XLSX, XML</p>
                     <input type="file" id="fileInput" accept=".csv,.xls,.xlsx,.xml" hidden>
+                </div>
+                <div class="drive-section">
+                    <button id="pullFromDriveBtn" class="btn btn-secondary" onclick="pullFromDrive()">
+                        Pull from Linked Drive
+                    </button>
+                    <span id="driveStatus" class="drive-status"></span>
                 </div>
             </section>
 
@@ -61,6 +67,7 @@
 
                 <div class="actions">
                     <button id="processBtn" class="btn btn-primary">Process & Export</button>
+                    <button id="saveToDbBtn" class="btn btn-secondary" onclick="saveToDatabase()">Save to Database</button>
                     <button id="cancelBtn" class="btn btn-secondary">Cancel</button>
                 </div>
             </section>

@@ -399,3 +399,165 @@ def get_carrier_config(carrier_name):
     if not config:
         return jsonify({'error': 'Carrier not found'}), 404
     return jsonify({'config': config})
+
+
+# ==================== DATABASE OPERATIONS ====================
+
+@main.route('/api/db/save', methods=['POST'])
+def save_to_database():
+    """Save processed data to database."""
+    from app.database import db_service
+
+    data = request.json
+    saved_filename = data.get('saved_filename')
+    carrier_name = data.get('carrier_name')
+    file_type = data.get('file_type', 'commission')
+    output_types = data.get('output_types', [file_type])
+
+    if not saved_filename or not carrier_name:
+        return jsonify({'error': 'Missing required fields'}), 400
+
+    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], saved_filename)
+    if not os.path.exists(filepath):
+        return jsonify({'error': 'File not found'}), 404
+
+    try:
+        df = parse_file(filepath)
+        carrier_config = CarrierConfig(current_app.config['DATA_FOLDER'])
+        transformer = get_transformer(carrier_name, carrier_config)
+
+        results = []
+        for out_type in output_types:
+            if transformer:
+                output_df = transformer.transform(df, out_type)
+            else:
+                output_df = df
+
+            if len(output_df) == 0:
+                continue
+
+            # Save to database based on type
+            if out_type == 'commission':
+                result = db_service.save_commissions(output_df, carrier_name, saved_filename)
+            elif out_type == 'chargeback':
+                result = db_service.save_chargebacks(output_df, carrier_name, saved_filename)
+            elif out_type == 'adjustment':
+                result = db_service.save_adjustments(output_df, carrier_name, saved_filename)
+            else:
+                continue
+
+            results.append({
+                'type': out_type,
+                'batch_id': result['batch_id'],
+                'imported': result['imported'],
+                'skipped': result['skipped']
+            })
+
+        return jsonify({
+            'success': True,
+            'results': results
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@main.route('/api/db/history', methods=['GET'])
+def get_import_history():
+    """Get import history from database."""
+    from app.database import db_service
+
+    try:
+        logs = db_service.get_import_history(limit=50)
+        return jsonify({
+            'success': True,
+            'imports': [{
+                'batch_id': log.batch_id,
+                'carrier': log.carrier_name,
+                'file_name': log.file_name,
+                'file_type': log.file_type,
+                'source': log.source,
+                'rows_imported': log.rows_imported,
+                'status': log.status,
+                'created_at': log.created_at.isoformat() if log.created_at else None
+            } for log in logs]
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@main.route('/api/db/export/<data_type>', methods=['GET'])
+def export_from_database(data_type):
+    """Export combined data from database."""
+    from app.database import db_service
+
+    carrier_name = request.args.get('carrier')
+
+    try:
+        if data_type == 'commissions':
+            df = db_service.export_combined_commissions(carrier_name)
+        elif data_type == 'chargebacks':
+            df = db_service.export_combined_chargebacks(carrier_name)
+        elif data_type == 'adjustments':
+            df = db_service.export_combined_adjustments(carrier_name)
+        else:
+            return jsonify({'error': 'Invalid data type'}), 400
+
+        # Generate export file
+        date_str = pd.Timestamp.now().strftime('%Y%m%d')
+        carrier_part = f" - {carrier_name}" if carrier_name else ""
+        export_filename = f"{date_str}{carrier_part} - Combined {data_type.title()}.csv"
+        export_path = os.path.join(current_app.config['EXPORT_FOLDER'], export_filename)
+        df.to_csv(export_path, index=False)
+
+        return jsonify({
+            'success': True,
+            'filename': export_filename,
+            'row_count': len(df)
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+# ==================== GOOGLE DRIVE INTEGRATION ====================
+
+@main.route('/api/drive/status', methods=['GET'])
+def get_drive_status():
+    """Get Google Drive integration status."""
+    from app.drive_service import get_drive_status as get_status
+    return jsonify(get_status())
+
+
+@main.route('/api/drive/pull', methods=['POST'])
+def pull_from_drive():
+    """Pull and process files from Google Drive."""
+    from app.drive_service import drive_service
+
+    if not drive_service.is_configured:
+        return jsonify({
+            'success': False,
+            'error': 'Google Drive not configured. Please set up credentials first.'
+        }), 400
+
+    data = request.json
+    input_folder_id = data.get('input_folder_id')
+    output_folder_id = data.get('output_folder_id')
+    processed_folder_id = data.get('processed_folder_id')
+    carrier_name = data.get('carrier_name')
+
+    if not input_folder_id or not output_folder_id:
+        return jsonify({'error': 'Missing folder IDs'}), 400
+
+    try:
+        result = drive_service.process_folder(
+            input_folder_id=input_folder_id,
+            output_folder_id=output_folder_id,
+            processed_folder_id=processed_folder_id,
+            carrier_name=carrier_name
+        )
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

@@ -482,6 +482,37 @@ nav {
     margin: 0.25rem;
 }
 
+/* Drive Section */
+.drive-section {
+    margin-top: 1rem;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.drive-status {
+    font-size: 0.85rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+}
+
+.drive-status.connected {
+    background: rgba(0, 255, 136, 0.2);
+    color: #00ff88;
+}
+
+.drive-status.not-configured {
+    background: rgba(255, 200, 0, 0.2);
+    color: #ffcc00;
+}
+
+#pullFromDriveBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* Utility */
 .hidden {
     display: none !important;

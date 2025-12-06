@@ -540,3 +540,90 @@ function resetUI() {
     carrierModal.classList.add('hidden');
     document.getElementById('missingLookupsWarning').classList.add('hidden');
 }
+
+// ==================== DATABASE OPERATIONS ====================
+
+async function saveToDatabase() {
+    if (!savedFilename || !carrierName) {
+        alert('No file loaded. Please upload a file first.');
+        return;
+    }
+
+    showLoading(true);
+
+    try {
+        const outputTypes = availableOutputs.length > 0
+            ? availableOutputs.map(o => o.type)
+            : [fileType];
+
+        const response = await fetch('/api/db/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                saved_filename: savedFilename,
+                carrier_name: carrierName,
+                output_types: outputTypes
+            })
+        });
+
+        const data = await response.json();
+        showLoading(false);
+
+        if (data.error) {
+            alert('Error saving to database: ' + data.error);
+            return;
+        }
+
+        // Show success message
+        const totalImported = data.results.reduce((sum, r) => sum + r.imported, 0);
+        const resultSummary = data.results.map(r =>
+            `${r.type}: ${r.imported} rows (batch: ${r.batch_id})`
+        ).join('\n');
+
+        alert(`Saved to database successfully!\n\nTotal rows: ${totalImported}\n\n${resultSummary}`);
+
+    } catch (error) {
+        showLoading(false);
+        alert('Error saving to database: ' + error.message);
+    }
+}
+
+// ==================== GOOGLE DRIVE INTEGRATION ====================
+
+async function checkDriveStatus() {
+    try {
+        const response = await fetch('/api/drive/status');
+        const data = await response.json();
+
+        const statusEl = document.getElementById('driveStatus');
+        const btnEl = document.getElementById('pullFromDriveBtn');
+
+        if (data.configured) {
+            statusEl.textContent = 'Connected';
+            statusEl.className = 'drive-status connected';
+            btnEl.disabled = false;
+        } else {
+            statusEl.textContent = 'Not configured';
+            statusEl.className = 'drive-status not-configured';
+            btnEl.disabled = true;
+            btnEl.title = data.message;
+        }
+    } catch (error) {
+        console.error('Error checking drive status:', error);
+    }
+}
+
+async function pullFromDrive() {
+    // For now, show a placeholder message
+    // This will be fully implemented when Google Drive is configured
+    alert('Google Drive Integration\n\n' +
+          'This feature will allow you to:\n' +
+          '1. Connect to a Google Drive folder\n' +
+          '2. Automatically pull new commission files\n' +
+          '3. Process them and save to database\n' +
+          '4. Upload results to an output folder\n\n' +
+          'To enable: Set up Google Cloud credentials and configure folder IDs in Settings.');
+}
+
+// Check drive status on page load
+document.addEventListener('DOMContentLoaded', checkDriveStatus);

@@ -1,6 +1,13 @@
 flask==3.1.2
+flask-sqlalchemy==3.1.1
 pandas==2.3.3
 openpyxl==3.1.5
 xlrd==2.0.2
 lxml==6.0.2
 gunicorn==23.0.0
+# For Google Drive integration (uncomment when ready):
+# google-api-python-client==2.111.0
+# google-auth==2.25.2
+# google-auth-oauthlib==1.2.0
+# For PostgreSQL on AWS (uncomment when ready):
+# psycopg2-binary==2.9.9
